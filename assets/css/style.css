@@ -122,7 +122,9 @@ font-size: 1.1rem;
    font-weight: 600;
    color: #202124;
 }
-
+.app-container li.active{
+   color: #01875f;
+}
 .app-container .share-information-list li p {
    font-size: 12px;
 }
