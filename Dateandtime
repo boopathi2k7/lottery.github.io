@@ -1,0 +1,99 @@
+import React, { useState } from 'react';
+
+const DateTimePickerComponent = () => {
+  const [selectedDateTime, setSelectedDateTime] = useState('');
+  const [formattedDateTime, setFormattedDateTime] = useState('No date selected');
+
+  const handleDateTimeChange = (e) => {
+    const dateTimeValue = e.target.value;
+    setSelectedDateTime(dateTimeValue);
+    
+    if (dateTimeValue) {
+      // Parse the selected datetime
+      const dateObj = new Date(dateTimeValue);
+      
+      // Format the date part
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      
+      // Format the time part
+      const hours = String(dateObj.getHours()).padStart(2, '0');
+      const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+      
+      // Combine into formatted string
+      const formattedDate = `${day} ${getMonthName(month)} ${year}`;
+      const formattedTime = `${hours}:${minutes}`;
+      
+      setFormattedDateTime(`${formattedDate} at ${formattedTime}`);
+    } else {
+      setFormattedDateTime('No date selected');
+    }
+  };
+  
+  // Helper function to get month name from month number
+  const getMonthName = (monthNumber) => {
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return months[parseInt(monthNumber, 10) - 1];
+  };
+
+  return (
+    <div className="p-6 max-w-md mx-auto">
+      <h2 className="text-xl font-bold mb-4">Date & Time Picker</h2>
+      
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">Select Date and Time:</label>
+        <input
+          type="datetime-local"
+          value={selectedDateTime}
+          onChange={handleDateTimeChange}
+          className="w-full p-2 border rounded"
+        />
+      </div>
+      
+      <div className="mt-6 p-4 bg-gray-100 rounded">
+        <h3 className="font-semibold mb-2">Selected Date & Time:</h3>
+        <p className="text-lg">{formattedDateTime}</p>
+      </div>
+      
+      <div className="mt-6 p-4 bg-gray-100 rounded">
+        <h3 className="font-semibold mb-2">Raw Value:</h3>
+        <p className="font-mono text-sm break-all">{selectedDateTime || 'None'}</p>
+      </div>
+      
+      <div className="mt-6 p-4 bg-gray-100 rounded">
+        <h3 className="font-semibold mb-2">Code example:</h3>
+        <pre className="text-sm whitespace-pre-wrap">
+{`// Format date and time from input
+const handleDateTimeChange = (e) => {
+  const dateTimeValue = e.target.value;
+  
+  if (dateTimeValue) {
+    const dateObj = new Date(dateTimeValue);
+    
+    // Format the date
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    
+    // Format the time
+    const hours = String(dateObj.getHours()).padStart(2, '0');
+    const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+    
+    // Get month name
+    const monthName = getMonthName(month);
+    
+    // Create formatted string
+    const formattedDateTime = \`\${day} \${monthName} \${year} at \${hours}:\${minutes}\`;
+  }
+};`}
+        </pre>
+      </div>
+    </div>
+  );
+};
+
+export default DateTimePickerComponent;
