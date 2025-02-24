@@ -1,0 +1,55 @@
+import React, { useState } from 'react';
+
+const AttributeCompare = () => {
+  const users = [
+    { id: 1, name: 'John', role: 'admin', department: 'IT' },
+    { id: 2, name: 'Sarah', role: 'user', department: 'HR' },
+    { id: 3, name: 'Mike', role: 'admin', department: 'Finance' },
+    { id: 4, name: 'Lisa', role: 'user', department: 'Marketing' }
+  ];
+
+  const [selectedRole, setSelectedRole] = useState('all');
+
+  // Get department for the first matching user
+  const getDepartment = () => {
+    const matchingUser = users.find(user => user.role === selectedRole);
+    return matchingUser ? matchingUser.department : 'No department found';
+  };
+
+  return (
+    <div className="p-4">
+      <div className="mb-4">
+        <label className="mr-2 font-semibold">Select Role:</label>
+        <select 
+          value={selectedRole}
+          onChange={(e) => setSelectedRole(e.target.value)}
+          className="border p-1 rounded"
+        >
+          <option value="all">All Roles</option>
+          <option value="admin">Admin</option>
+          <option value="user">User</option>
+        </select>
+      </div>
+
+      <div className="mt-4 p-4 border rounded">
+        <p className="font-semibold">Department for selected role:</p>
+        <p className="mt-2">{getDepartment()}</p>
+      </div>
+
+      <div className="mt-6 p-4 bg-gray-100 rounded">
+        <h3 className="font-semibold mb-2">Code example:</h3>
+        <pre className="whitespace-pre-wrap">
+{`// Find first matching user and get their department
+const getDepartment = () => {
+  const matchingUser = users.find(user => 
+    user.role === selectedRole
+  );
+  return matchingUser ? matchingUser.department : 'No department found';
+};`}
+        </pre>
+      </div>
+    </div>
+  );
+};
+
+export default AttributeCompare;
