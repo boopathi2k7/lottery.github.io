@@ -1,0 +1,33 @@
+import React from 'react';
+
+const DateFormatter = ({ dateString }) => {
+  const formatDate = (inputDate) => {
+    const date = new Date(inputDate);
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    
+    return `${day} ${month} ${year}`;
+  };
+
+  return (
+    <div className="p-4">
+      <p className="text-lg">
+        Original date: {dateString}
+      </p>
+      <p className="text-lg mt-2">
+        Formatted date: {formatDate(dateString)}
+      </p>
+    </div>
+  );
+};
+
+// Example usage
+export default () => (
+  <DateFormatter dateString="2025-02-04" />
+);
