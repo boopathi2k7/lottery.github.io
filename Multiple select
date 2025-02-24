@@ -1,0 +1,91 @@
+import React, { useState } from 'react';
+import { X, ChevronDown, ChevronUp, Check } from 'lucide-react';
+
+const MultiSelect = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedItems, setSelectedItems] = useState([
+    { id: 1, label: 'Option 1' },
+    { id: 2, label: 'Option 2' }
+  ]);
+  
+  // Sample options - you can replace these with your own data
+  const options = [
+    { id: 1, label: 'Option 1' },
+    { id: 2, label: 'Option 2' },
+    { id: 3, label: 'Option 3' },
+    { id: 4, label: 'Option 4' },
+    { id: 5, label: 'Option 5' },
+  ];
+
+  const toggleOption = (option) => {
+    setSelectedItems(prev => {
+      const isSelected = prev.find(item => item.id === option.id);
+      if (isSelected) {
+        return prev.filter(item => item.id !== option.id);
+      } else {
+        return [...prev, option];
+      }
+    });
+  };
+
+  const removeItem = (optionToRemove) => {
+    setSelectedItems(prev => prev.filter(item => item.id !== optionToRemove.id));
+  };
+
+  return (
+    <div className="w-64 relative">
+      {/* Selected items display */}
+      <div 
+        className="min-h-10 p-2 border rounded-md bg-white cursor-pointer flex flex-wrap gap-1"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {selectedItems.length > 0 ? (
+          selectedItems.map(item => (
+            <div 
+              key={item.id}
+              className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md flex items-center gap-1 text-sm"
+            >
+              <span>{item.label}</span>
+              <X 
+                size={14}
+                className="cursor-pointer hover:text-blue-600" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeItem(item);
+                }}
+              />
+            </div>
+          ))
+        ) : (
+          <span className="text-gray-500">Select options...</span>
+        )}
+        <div className="ml-auto flex items-center">
+          {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+        </div>
+      </div>
+
+      {/* Dropdown */}
+      {isOpen && (
+        <div className="absolute w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto z-10">
+          {options.map(option => {
+            const isSelected = selectedItems.find(item => item.id === option.id);
+            return (
+              <div
+                key={option.id}
+                className={`p-2 hover:bg-gray-100 cursor-pointer flex items-center justify-between ${
+                  isSelected ? 'bg-blue-50' : ''
+                }`}
+                onClick={() => toggleOption(option)}
+              >
+                <span>{option.label}</span>
+                {isSelected && <Check size={16} className="text-blue-600" />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default MultiSelect;
