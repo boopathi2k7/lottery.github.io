@@ -1,0 +1,47 @@
+import React, { useState } from "react";
+import { Typeahead } from "react-bootstrap-typeahead";
+import "react-bootstrap-typeahead/css/Typeahead.css";
+
+const options = [
+  { id: 1, name: "Apple" },
+  { id: 2, name: "Banana" },
+  { id: 3, name: "Cherry" },
+  { id: 4, name: "Date" },
+  { id: 5, name: "Grape" },
+  { id: 6, name: "Mango" },
+  { id: 7, name: "Orange" },
+  { id: 8, name: "Peach" },
+  { id: 9, name: "Pineapple" },
+  { id: 10, name: "Strawberry" },
+];
+
+const TypeaheadExample = () => {
+  const [selected, setSelected] = useState([]);
+
+  return (
+    <div className="container mt-4">
+      <h3>React Bootstrap Typeahead with Object Array</h3>
+      <Typeahead
+        id="fruit-typeahead-objects"
+        labelKey="name"
+        options={options}
+        placeholder="Choose a fruit..."
+        selected={selected}
+        onChange={setSelected}
+        multiple  // Remove if you need single selection only
+      />
+      {selected.length > 0 && (
+        <div className="mt-3">
+          <strong>Selected:</strong>
+          <ul>
+            {selected.map((item) => (
+              <li key={item.id}>{item.name}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default TypeaheadExample;
