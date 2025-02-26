@@ -1,0 +1,211 @@
+import React, { useState } from 'react';
+
+const MegaMenu = () => {
+  const [activeMenu, setActiveMenu] = useState(null);
+  
+  // Sample menu data structure
+  const menuItems = [
+    {
+      id: 'products',
+      label: 'Products',
+      columns: [
+        {
+          title: 'Electronics',
+          items: [
+            { name: 'Smartphones', url: '#' },
+            { name: 'Laptops', url: '#' },
+            { name: 'Tablets', url: '#' },
+            { name: 'Cameras', url: '#' },
+            { name: 'Audio', url: '#' }
+          ]
+        },
+        {
+          title: 'Home Appliances',
+          items: [
+            { name: 'Refrigerators', url: '#' },
+            { name: 'Washing Machines', url: '#' },
+            { name: 'Air Conditioners', url: '#' },
+            { name: 'Microwaves', url: '#' },
+            { name: 'Vacuum Cleaners', url: '#' }
+          ]
+        },
+        {
+          title: 'Featured',
+          items: [
+            { name: 'New Arrivals', url: '#' },
+            { name: 'Best Sellers', url: '#' },
+            { name: 'Special Offers', url: '#' },
+            { name: 'Clearance', url: '#' }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'services',
+      label: 'Services',
+      columns: [
+        {
+          title: 'Support',
+          items: [
+            { name: 'Product Help', url: '#' },
+            { name: 'Customer Service', url: '#' },
+            { name: 'Warranty Info', url: '#' },
+            { name: 'Repairs', url: '#' }
+          ]
+        },
+        {
+          title: 'Business',
+          items: [
+            { name: 'Business Solutions', url: '#' },
+            { name: 'Enterprise Accounts', url: '#' },
+            { name: 'Education', url: '#' },
+            { name: 'Government', url: '#' }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'about',
+      label: 'About Us',
+      columns: [
+        {
+          title: 'Company',
+          items: [
+            { name: 'Our Story', url: '#' },
+            { name: 'Leadership', url: '#' },
+            { name: 'Careers', url: '#' },
+            { name: 'Press Center', url: '#' },
+            { name: 'Sustainability', url: '#' }
+          ]
+        },
+        {
+          title: 'Contact',
+          items: [
+            { name: 'Contact Us', url: '#' },
+            { name: 'Store Locations', url: '#' },
+            { name: 'Find a Dealer', url: '#' }
+          ]
+        }
+      ]
+    }
+  ];
+
+  // Handle mouse enter on menu item
+  const handleMouseEnter = (menuId) => {
+    setActiveMenu(menuId);
+  };
+
+  // Handle mouse leave on menu
+  const handleMouseLeave = () => {
+    setActiveMenu(null);
+  };
+
+  return (
+    <div className="w-full">
+      {/* Main navigation */}
+      <nav className="bg-white shadow-md">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex justify-between">
+            <div className="flex items-center space-x-8">
+              {/* Logo */}
+              <div className="flex-shrink-0 flex items-center py-4">
+                <span className="text-2xl font-bold text-blue-600">LOGO</span>
+              </div>
+              
+              {/* Primary Navigation */}
+              <div className="hidden md:flex items-center space-x-1">
+                {menuItems.map((item) => (
+                  <div 
+                    key={item.id}
+                    className="relative group"
+                    onMouseEnter={() => handleMouseEnter(item.id)}
+                  >
+                    <button 
+                      className={`px-3 py-4 text-sm font-medium hover:text-blue-600 transition-colors duration-200 flex items-center ${activeMenu === item.id ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-700'}`}
+                    >
+                      {item.label}
+                      <svg 
+                        className={`ml-1 h-4 w-4 transition-transform duration-200 ${activeMenu === item.id ? 'rotate-180 text-blue-600' : 'text-gray-500'}`} 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        viewBox="0 0 20 20" 
+                        fill="currentColor"
+                      >
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Secondary Navigation */}
+            <div className="hidden md:flex items-center space-x-4">
+              <a href="#" className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200">
+                Sign In
+              </a>
+              <a href="#" className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors duration-200">
+                Register
+              </a>
+            </div>
+
+            {/* Mobile button */}
+            <div className="md:hidden flex items-center">
+              <button className="mobile-menu-button focus:outline-none">
+                <svg className="h-6 w-6 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mega Menu */}
+      {menuItems.map((menu) => (
+        <div 
+          key={menu.id}
+          className={`absolute z-10 w-full bg-white shadow-lg transition-all duration-200 ease-in-out ${activeMenu === menu.id ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+          onMouseEnter={() => handleMouseEnter(menu.id)}
+          onMouseLeave={handleMouseLeave}
+        >
+          <div className="max-w-6xl mx-auto px-4 py-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {menu.columns.map((column, idx) => (
+                <div key={idx} className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-800">{column.title}</h3>
+                  <ul className="space-y-2">
+                    {column.items.map((item, itemIdx) => (
+                      <li key={itemIdx}>
+                        <a 
+                          href={item.url} 
+                          className="text-sm text-gray-600 hover:text-blue-600 transition-colors duration-150"
+                        >
+                          {item.name}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {/* Mobile Menu (Hidden by default) */}
+      <div className="md:hidden hidden">
+        <div className="px-2 pt-2 pb-3 space-y-1">
+          {menuItems.map((item) => (
+            <div key={item.id} className="block">
+              <button className="text-left w-full px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-md transition-colors duration-200">
+                {item.label}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MegaMenu;
