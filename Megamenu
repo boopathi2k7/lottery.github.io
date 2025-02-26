@@ -100,32 +100,205 @@ const MegaMenu = () => {
     setActiveMenu(null);
   };
 
+  // Main container styles
+  const mainContainerStyle = {
+    width: '100%'
+  };
+
+  // Navigation styles
+  const navStyle = {
+    backgroundColor: 'white',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+  };
+
+  const navContainerStyle = {
+    maxWidth: '72rem',
+    margin: '0 auto',
+    padding: '0 1rem'
+  };
+
+  const navFlexStyle = {
+    display: 'flex',
+    justifyContent: 'space-between'
+  };
+
+  const logoContainerStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '1rem 0'
+  };
+
+  const logoStyle = {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    color: '#2563eb'
+  };
+
+  const primaryNavStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    marginLeft: '2rem'
+  };
+
+  const secondaryNavStyle = {
+    display: 'flex',
+    alignItems: 'center'
+  };
+
+  const menuItemStyle = {
+    position: 'relative'
+  };
+
+  const getMenuButtonStyle = (isActive) => ({
+    display: 'flex',
+    alignItems: 'center',
+    padding: '1rem 0.75rem',
+    fontSize: '0.875rem',
+    fontWeight: '500',
+    color: isActive ? '#2563eb' : '#374151',
+    transition: 'color 0.2s',
+    borderBottom: isActive ? '2px solid #2563eb' : 'none'
+  });
+
+  const chevronStyle = (isActive) => ({
+    marginLeft: '0.25rem',
+    height: '1rem',
+    width: '1rem',
+    color: isActive ? '#2563eb' : '#6b7280',
+    transform: isActive ? 'rotate(180deg)' : 'rotate(0)',
+    transition: 'transform 0.2s'
+  });
+
+  const signInStyle = {
+    padding: '0.5rem 0.75rem',
+    fontSize: '0.875rem',
+    fontWeight: '500',
+    color: '#374151',
+    transition: 'color 0.2s'
+  };
+
+  const registerStyle = {
+    padding: '0.5rem 1rem',
+    backgroundColor: '#2563eb',
+    color: 'white',
+    fontSize: '0.875rem',
+    fontWeight: '500',
+    borderRadius: '0.375rem',
+    transition: 'background-color 0.2s'
+  };
+
+  const mobileButtonStyle = {
+    display: 'flex',
+    alignItems: 'center'
+  };
+
+  const hamburgerIconStyle = {
+    height: '1.5rem',
+    width: '1.5rem',
+    color: '#374151'
+  };
+
+  // Mega menu styles
+  const getMegaMenuStyle = (isActive) => ({
+    position: 'absolute',
+    zIndex: 10,
+    width: '100%',
+    backgroundColor: 'white',
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+    transition: 'all 0.2s ease-in-out',
+    opacity: isActive ? 1 : 0,
+    visibility: isActive ? 'visible' : 'hidden'
+  });
+
+  const megaMenuContainerStyle = {
+    maxWidth: '72rem',
+    margin: '0 auto',
+    padding: '1.5rem 1rem'
+  };
+
+  const columnContainerStyle = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+    gap: '2rem'
+  };
+
+  const columnStyle = {
+    marginBottom: '1rem'
+  };
+
+  const columnTitleStyle = {
+    fontSize: '1.125rem',
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: '1rem'
+  };
+
+  const columnListStyle = {
+    listStyle: 'none',
+    padding: 0,
+    margin: 0
+  };
+
+  const columnItemStyle = {
+    marginBottom: '0.5rem'
+  };
+
+  const columnLinkStyle = {
+    fontSize: '0.875rem',
+    color: '#4b5563',
+    textDecoration: 'none',
+    transition: 'color 0.15s'
+  };
+
+  // Responsive styles
+  const responsiveHide = {
+    display: 'none'
+  };
+
+  const mobileMenuStyle = {
+    padding: '0.5rem'
+  };
+
+  const mobileMenuItemStyle = {
+    display: 'block',
+    width: '100%',
+    textAlign: 'left',
+    padding: '0.75rem',
+    fontSize: '1rem',
+    fontWeight: '500',
+    color: '#374151',
+    borderRadius: '0.375rem',
+    transition: 'background-color 0.2s, color 0.2s'
+  };
+
+  // Apply responsive styles based on viewport
+  const mediaQuery = window.matchMedia('(min-width: 768px)');
+  const isMobile = !mediaQuery.matches;
+
   return (
-    <div className="w-full">
+    <div style={mainContainerStyle}>
       {/* Main navigation */}
-      <nav className="bg-white shadow-md">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex justify-between">
-            <div className="flex items-center space-x-8">
+      <nav style={navStyle}>
+        <div style={navContainerStyle}>
+          <div style={navFlexStyle}>
+            <div style={{display: 'flex', alignItems: 'center'}}>
               {/* Logo */}
-              <div className="flex-shrink-0 flex items-center py-4">
-                <span className="text-2xl font-bold text-blue-600">LOGO</span>
+              <div style={logoContainerStyle}>
+                <span style={logoStyle}>LOGO</span>
               </div>
               
               {/* Primary Navigation */}
-              <div className="hidden md:flex items-center space-x-1">
+              <div style={isMobile ? responsiveHide : primaryNavStyle}>
                 {menuItems.map((item) => (
                   <div 
                     key={item.id}
-                    className="relative group"
+                    style={menuItemStyle}
                     onMouseEnter={() => handleMouseEnter(item.id)}
                   >
-                    <button 
-                      className={`px-3 py-4 text-sm font-medium hover:text-blue-600 transition-colors duration-200 flex items-center ${activeMenu === item.id ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-700'}`}
-                    >
+                    <button style={getMenuButtonStyle(activeMenu === item.id)}>
                       {item.label}
                       <svg 
-                        className={`ml-1 h-4 w-4 transition-transform duration-200 ${activeMenu === item.id ? 'rotate-180 text-blue-600' : 'text-gray-500'}`} 
+                        style={chevronStyle(activeMenu === item.id)} 
                         xmlns="http://www.w3.org/2000/svg" 
                         viewBox="0 0 20 20" 
                         fill="currentColor"
@@ -139,19 +312,19 @@ const MegaMenu = () => {
             </div>
             
             {/* Secondary Navigation */}
-            <div className="hidden md:flex items-center space-x-4">
-              <a href="#" className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200">
+            <div style={isMobile ? responsiveHide : secondaryNavStyle}>
+              <a href="#" style={signInStyle}>
                 Sign In
               </a>
-              <a href="#" className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors duration-200">
+              <a href="#" style={{...registerStyle, marginLeft: '1rem'}}>
                 Register
               </a>
             </div>
 
             {/* Mobile button */}
-            <div className="md:hidden flex items-center">
-              <button className="mobile-menu-button focus:outline-none">
-                <svg className="h-6 w-6 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div style={isMobile ? mobileButtonStyle : responsiveHide}>
+              <button style={{background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem'}}>
+                <svg style={hamburgerIconStyle} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
@@ -164,21 +337,23 @@ const MegaMenu = () => {
       {menuItems.map((menu) => (
         <div 
           key={menu.id}
-          className={`absolute z-10 w-full bg-white shadow-lg transition-all duration-200 ease-in-out ${activeMenu === menu.id ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+          style={getMegaMenuStyle(activeMenu === menu.id)}
           onMouseEnter={() => handleMouseEnter(menu.id)}
           onMouseLeave={handleMouseLeave}
         >
-          <div className="max-w-6xl mx-auto px-4 py-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div style={megaMenuContainerStyle}>
+            <div style={columnContainerStyle}>
               {menu.columns.map((column, idx) => (
-                <div key={idx} className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-800">{column.title}</h3>
-                  <ul className="space-y-2">
+                <div key={idx} style={columnStyle}>
+                  <h3 style={columnTitleStyle}>{column.title}</h3>
+                  <ul style={columnListStyle}>
                     {column.items.map((item, itemIdx) => (
-                      <li key={itemIdx}>
+                      <li key={itemIdx} style={columnItemStyle}>
                         <a 
                           href={item.url} 
-                          className="text-sm text-gray-600 hover:text-blue-600 transition-colors duration-150"
+                          style={columnLinkStyle}
+                          onMouseOver={(e) => e.target.style.color = '#2563eb'}
+                          onMouseOut={(e) => e.target.style.color = '#4b5563'}
                         >
                           {item.name}
                         </a>
@@ -193,16 +368,14 @@ const MegaMenu = () => {
       ))}
 
       {/* Mobile Menu (Hidden by default) */}
-      <div className="md:hidden hidden">
-        <div className="px-2 pt-2 pb-3 space-y-1">
-          {menuItems.map((item) => (
-            <div key={item.id} className="block">
-              <button className="text-left w-full px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-md transition-colors duration-200">
-                {item.label}
-              </button>
-            </div>
-          ))}
-        </div>
+      <div style={{...mobileMenuStyle, ...responsiveHide}}>
+        {menuItems.map((item) => (
+          <div key={item.id} style={{marginBottom: '0.5rem'}}>
+            <button style={mobileMenuItemStyle}>
+              {item.label}
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );
