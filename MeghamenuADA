@@ -1,0 +1,592 @@
+import React, { useState, useRef, useEffect } from 'react';
+
+const MegaMenu = () => {
+  const [activeMenu, setActiveMenu] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const menuRefs = useRef({});
+  const firstFocusableElementsRef = useRef({});
+  const lastFocusableElementsRef = useRef({});
+  
+  // Sample menu data structure
+  const menuItems = [
+    {
+      id: 'products',
+      label: 'Products',
+      columns: [
+        {
+          title: 'Electronics',
+          items: [
+            { name: 'Smartphones', url: '#smartphones' },
+            { name: 'Laptops', url: '#laptops' },
+            { name: 'Tablets', url: '#tablets' },
+            { name: 'Cameras', url: '#cameras' },
+            { name: 'Audio', url: '#audio' }
+          ]
+        },
+        {
+          title: 'Home Appliances',
+          items: [
+            { name: 'Refrigerators', url: '#refrigerators' },
+            { name: 'Washing Machines', url: '#washing-machines' },
+            { name: 'Air Conditioners', url: '#air-conditioners' },
+            { name: 'Microwaves', url: '#microwaves' },
+            { name: 'Vacuum Cleaners', url: '#vacuum-cleaners' }
+          ]
+        },
+        {
+          title: 'Featured',
+          items: [
+            { name: 'New Arrivals', url: '#new-arrivals' },
+            { name: 'Best Sellers', url: '#best-sellers' },
+            { name: 'Special Offers', url: '#special-offers' },
+            { name: 'Clearance', url: '#clearance' }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'services',
+      label: 'Services',
+      columns: [
+        {
+          title: 'Support',
+          items: [
+            { name: 'Product Help', url: '#product-help' },
+            { name: 'Customer Service', url: '#customer-service' },
+            { name: 'Warranty Info', url: '#warranty' },
+            { name: 'Repairs', url: '#repairs' }
+          ]
+        },
+        {
+          title: 'Business',
+          items: [
+            { name: 'Business Solutions', url: '#business-solutions' },
+            { name: 'Enterprise Accounts', url: '#enterprise' },
+            { name: 'Education', url: '#education' },
+            { name: 'Government', url: '#government' }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'about',
+      label: 'About Us',
+      columns: [
+        {
+          title: 'Company',
+          items: [
+            { name: 'Our Story', url: '#our-story' },
+            { name: 'Leadership', url: '#leadership' },
+            { name: 'Careers', url: '#careers' },
+            { name: 'Press Center', url: '#press' },
+            { name: 'Sustainability', url: '#sustainability' }
+          ]
+        },
+        {
+          title: 'Contact',
+          items: [
+            { name: 'Contact Us', url: '#contact' },
+            { name: 'Store Locations', url: '#stores' },
+            { name: 'Find a Dealer', url: '#dealers' }
+          ]
+        }
+      ]
+    }
+  ];
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    if (activeMenu) {
+      // Store focusable elements for keyboard navigation
+      const menuContainer = menuRefs.current[activeMenu];
+      if (menuContainer) {
+        const focusableElements = menuContainer.querySelectorAll(
+          'a[href], button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select'
+        );
+        
+        if (focusableElements.length > 0) {
+          firstFocusableElementsRef.current[activeMenu] = focusableElements[0];
+          lastFocusableElementsRef.current[activeMenu] = focusableElements[focusableElements.length - 1];
+          
+          // Auto-focus first element in menu
+          firstFocusableElementsRef.current[activeMenu].focus();
+        }
+      }
+    }
+  }, [activeMenu]);
+
+  // Handle menu toggle
+  const toggleMenu = (menuId) => {
+    if (activeMenu === menuId) {
+      setActiveMenu(null);
+    } else {
+      setActiveMenu(menuId);
+    }
+  };
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e, menuId) => {
+    if (e.key === 'Escape') {
+      setActiveMenu(null);
+      // Focus back on the button that opened the menu
+      const button = document.getElementById(`menu-button-${menuId}`);
+      if (button) button.focus();
+    } else if (e.key === 'Tab') {
+      // Trap focus within the mega menu
+      if (e.shiftKey && document.activeElement === firstFocusableElementsRef.current[menuId]) {
+        e.preventDefault();
+        lastFocusableElementsRef.current[menuId].focus();
+      } else if (!e.shiftKey && document.activeElement === lastFocusableElementsRef.current[menuId]) {
+        e.preventDefault();
+        firstFocusableElementsRef.current[menuId].focus();
+      }
+    }
+  };
+
+  // Toggle mobile menu
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  // Main container styles
+  const mainContainerStyle = {
+    width: '100%',
+    position: 'relative'
+  };
+
+  // Navigation styles
+  const navStyle = {
+    backgroundColor: 'white',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+    position: 'relative',
+    zIndex: 20
+  };
+
+  const navContainerStyle = {
+    maxWidth: '72rem',
+    margin: '0 auto',
+    padding: '0 1rem'
+  };
+
+  const navFlexStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  };
+
+  const logoContainerStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '1rem 0'
+  };
+
+  const logoStyle = {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    color: '#2563eb'
+  };
+
+  const primaryNavStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    marginLeft: '2rem'
+  };
+
+  const secondaryNavStyle = {
+    display: 'flex',
+    alignItems: 'center'
+  };
+
+  const menuItemStyle = {
+    position: 'relative'
+  };
+
+  const getMenuButtonStyle = (isActive) => ({
+    display: 'flex',
+    alignItems: 'center',
+    padding: '1rem 0.75rem',
+    fontSize: '0.875rem',
+    fontWeight: '500',
+    color: isActive ? '#2563eb' : '#374151',
+    transition: 'color 0.2s',
+    borderBottom: isActive ? '2px solid #2563eb' : 'none',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    position: 'relative'
+  });
+
+  const chevronStyle = (isActive) => ({
+    marginLeft: '0.25rem',
+    height: '1rem',
+    width: '1rem',
+    color: isActive ? '#2563eb' : '#6b7280',
+    transform: isActive ? 'rotate(180deg)' : 'rotate(0)',
+    transition: 'transform 0.2s'
+  });
+
+  const signInStyle = {
+    padding: '0.5rem 0.75rem',
+    fontSize: '0.875rem',
+    fontWeight: '500',
+    color: '#374151',
+    transition: 'color 0.2s',
+    textDecoration: 'none'
+  };
+
+  const registerStyle = {
+    padding: '0.5rem 1rem',
+    backgroundColor: '#2563eb',
+    color: 'white',
+    fontSize: '0.875rem',
+    fontWeight: '500',
+    borderRadius: '0.375rem',
+    transition: 'background-color 0.2s',
+    textDecoration: 'none'
+  };
+
+  const mobileButtonStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '0.5rem'
+  };
+
+  const hamburgerIconStyle = {
+    height: '1.5rem',
+    width: '1.5rem',
+    color: '#374151'
+  };
+
+  // Mega menu styles
+  const getMegaMenuStyle = (isActive) => ({
+    position: 'absolute',
+    zIndex: 10,
+    width: '100%',
+    backgroundColor: 'white',
+    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+    transition: 'all 0.2s ease-in-out',
+    opacity: isActive ? 1 : 0,
+    visibility: isActive ? 'visible' : 'hidden',
+    left: 0
+  });
+
+  const megaMenuContainerStyle = {
+    maxWidth: '72rem',
+    margin: '0 auto',
+    padding: '1.5rem 1rem'
+  };
+
+  const columnContainerStyle = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+    gap: '2rem'
+  };
+
+  const columnStyle = {
+    marginBottom: '1rem'
+  };
+
+  const columnTitleStyle = {
+    fontSize: '1.125rem',
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: '1rem',
+    marginTop: 0
+  };
+
+  const columnListStyle = {
+    listStyle: 'none',
+    padding: 0,
+    margin: 0
+  };
+
+  const columnItemStyle = {
+    marginBottom: '0.5rem'
+  };
+
+  const columnLinkStyle = {
+    fontSize: '0.875rem',
+    color: '#4b5563',
+    textDecoration: 'none',
+    transition: 'color 0.15s',
+    display: 'inline-block',
+    padding: '0.25rem 0'
+  };
+
+  // Mobile menu styles
+  const mobileMenuStyle = {
+    padding: '0.5rem',
+    backgroundColor: 'white',
+    borderTop: '1px solid #e5e7eb',
+    display: isMobileMenuOpen ? 'block' : 'none'
+  };
+
+  const mobileMenuItemStyle = {
+    display: 'block',
+    width: '100%',
+    textAlign: 'left',
+    padding: '0.75rem',
+    fontSize: '1rem',
+    fontWeight: '500',
+    color: '#374151',
+    borderRadius: '0.375rem',
+    border: 'none',
+    background: 'none',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s, color 0.2s'
+  };
+
+  const mobileSubmenuStyle = {
+    paddingLeft: '1.5rem',
+    display: 'block'
+  };
+
+  const mobileSubmenuTitleStyle = {
+    fontSize: '0.875rem',
+    fontWeight: '600',
+    color: '#4b5563',
+    marginTop: '0.75rem',
+    marginBottom: '0.5rem'
+  };
+
+  const mobileSubmenuLinkStyle = {
+    display: 'block',
+    padding: '0.5rem 0',
+    fontSize: '0.875rem',
+    color: '#6b7280',
+    textDecoration: 'none'
+  };
+
+  // Apply responsive styles based on viewport
+  const mediaQuery = window.matchMedia('(min-width: 768px)');
+  const isMobile = !mediaQuery.matches;
+
+  // Hide for desktop or mobile accordingly
+  const desktopOnlyStyle = isMobile ? { display: 'none' } : {};
+  const mobileOnlyStyle = isMobile ? {} : { display: 'none' };
+
+  // Handle focus trap in mega menu
+  const handleFocusTrap = (e, menuId) => {
+    if (e.key === 'Tab') {
+      const firstFocusable = firstFocusableElementsRef.current[menuId];
+      const lastFocusable = lastFocusableElementsRef.current[menuId];
+      
+      if (e.shiftKey && document.activeElement === firstFocusable) {
+        e.preventDefault();
+        lastFocusable.focus();
+      } else if (!e.shiftKey && document.activeElement === lastFocusable) {
+        e.preventDefault();
+        firstFocusable.focus();
+      }
+    }
+  };
+
+  return (
+    <div style={mainContainerStyle}>
+      {/* Skip to main content link for accessibility */}
+      <a 
+        href="#main-content" 
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          zIndex: 999,
+          padding: '1rem',
+          background: '#2563eb',
+          color: 'white',
+          textDecoration: 'none'
+        }}
+        onFocus={(e) => {
+          e.target.style.position = 'static';
+          e.target.style.left = 'auto';
+        }}
+        onBlur={(e) => {
+          e.target.style.position = 'absolute';
+          e.target.style.left = '-9999px';
+        }}
+      >
+        Skip to main content
+      </a>
+      
+      {/* Main navigation */}
+      <nav style={navStyle} role="navigation" aria-label="Main Navigation">
+        <div style={navContainerStyle}>
+          <div style={navFlexStyle}>
+            <div style={{display: 'flex', alignItems: 'center'}}>
+              {/* Logo */}
+              <div style={logoContainerStyle}>
+                <a href="/" style={{...logoStyle, textDecoration: 'none'}} aria-label="Home">LOGO</a>
+              </div>
+              
+              {/* Primary Navigation */}
+              <div style={{...primaryNavStyle, ...desktopOnlyStyle}}>
+                {menuItems.map((item) => (
+                  <div key={item.id} style={menuItemStyle}>
+                    <button 
+                      id={`menu-button-${item.id}`}
+                      style={getMenuButtonStyle(activeMenu === item.id)}
+                      aria-expanded={activeMenu === item.id}
+                      aria-controls={`mega-menu-${item.id}`}
+                      aria-haspopup="true"
+                      onClick={() => toggleMenu(item.id)}
+                    >
+                      {item.label}
+                      <svg 
+                        style={chevronStyle(activeMenu === item.id)} 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        viewBox="0 0 20 20" 
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Secondary Navigation */}
+            <div style={{...secondaryNavStyle, ...desktopOnlyStyle}}>
+              <a href="/signin" style={signInStyle}>
+                Sign In
+              </a>
+              <a href="/register" style={{...registerStyle, marginLeft: '1rem'}}>
+                Register
+              </a>
+            </div>
+
+            {/* Mobile button */}
+            <div style={{...mobileOnlyStyle}}>
+              <button 
+                style={mobileButtonStyle} 
+                onClick={toggleMobileMenu}
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-menu"
+                aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+              >
+                <svg style={hamburgerIconStyle} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mega Menu */}
+      {menuItems.map((menu) => (
+        <div 
+          key={menu.id}
+          id={`mega-menu-${menu.id}`}
+          ref={el => menuRefs.current[menu.id] = el}
+          style={getMegaMenuStyle(activeMenu === menu.id)}
+          role="region"
+          aria-labelledby={`menu-button-${menu.id}`}
+          onKeyDown={(e) => handleKeyDown(e, menu.id)}
+        >
+          <div style={megaMenuContainerStyle}>
+            <div style={columnContainerStyle}>
+              {menu.columns.map((column, idx) => (
+                <div key={idx} style={columnStyle}>
+                  <h3 style={columnTitleStyle} id={`${menu.id}-${column.title.toLowerCase().replace(' ', '-')}-heading`}>{column.title}</h3>
+                  <ul 
+                    style={columnListStyle} 
+                    aria-labelledby={`${menu.id}-${column.title.toLowerCase().replace(' ', '-')}-heading`}
+                  >
+                    {column.items.map((item, itemIdx) => (
+                      <li key={itemIdx} style={columnItemStyle}>
+                        <a 
+                          href={item.url} 
+                          style={columnLinkStyle}
+                          onMouseOver={(e) => e.target.style.color = '#2563eb'}
+                          onMouseOut={(e) => e.target.style.color = '#4b5563'}
+                        >
+                          {item.name}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            {/* Close button for accessibility */}
+            <button 
+              style={{
+                marginTop: '1rem',
+                padding: '0.5rem 1rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                background: 'none',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                color: '#4b5563'
+              }}
+              onClick={() => setActiveMenu(null)}
+              aria-label="Close menu"
+            >
+              Close Menu
+            </button>
+          </div>
+        </div>
+      ))}
+
+      {/* Mobile Menu */}
+      <div 
+        id="mobile-menu" 
+        style={mobileMenuStyle}
+        role="navigation" 
+        aria-label="Mobile Navigation"
+      >
+        {menuItems.map((item) => (
+          <div key={item.id}>
+            <button 
+              style={mobileMenuItemStyle} 
+              aria-expanded="false"
+              onClick={() => toggleMenu(item.id)}
+            >
+              {item.label}
+            </button>
+            
+            {activeMenu === item.id && (
+              <div style={mobileSubmenuStyle}>
+                {item.columns.map((column, colIdx) => (
+                  <div key={colIdx}>
+                    <h4 style={mobileSubmenuTitleStyle}>{column.title}</h4>
+                    <ul style={columnListStyle}>
+                      {column.items.map((subItem, subIdx) => (
+                        <li key={subIdx}>
+                          <a href={subItem.url} style={mobileSubmenuLinkStyle}>
+                            {subItem.name}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+        
+        <div style={{marginTop: '1rem', padding: '0.75rem'}}>
+          <a href="/signin" style={{...signInStyle, display: 'block', marginBottom: '0.75rem'}}>
+            Sign In
+          </a>
+          <a href="/register" style={{...registerStyle, display: 'block', textAlign: 'center'}}>
+            Register
+          </a>
+        </div>
+      </div>
+      
+      {/* Main content area for skip navigation */}
+      <main id="main-content" style={{padding: '1rem'}}>
+        {/* Your page content goes here */}
+      </main>
+    </div>
+  );
+};
+
+export default MegaMenu;
