@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Menu, X } from 'lucide-react';
 
 const MobileAccordionMegaMenu = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeAccordions, setActiveAccordions] = useState({});
   const [isMobile, setIsMobile] = useState(false);
+  const menuRef = useRef(null);
+  const hamburgerRef = useRef(null);
 
   // Check if screen is mobile size
   useEffect(() => {
@@ -21,6 +23,33 @@ const MobileAccordionMegaMenu = () => {
     // Cleanup
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
+
+  // Handle Escape key to close menu
+  useEffect(() => {
+    const handleEscKey = (event) => {
+      if (event.key === 'Escape' && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscKey);
+    return () => document.removeEventListener('keydown', handleEscKey);
+  }, [isMobileMenuOpen]);
+
+  // Focus trap for mobile menu
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      // Set focus to the mobile menu when it opens
+      if (menuRef.current) {
+        menuRef.current.focus();
+      }
+    } else {
+      // Return focus to hamburger button when menu closes
+      if (hamburgerRef.current) {
+        hamburgerRef.current.focus();
+      }
+    }
+  }, [isMobileMenuOpen]);
 
   // Toggle mobile menu
   const toggleMobileMenu = () => {
@@ -94,27 +123,59 @@ const MobileAccordionMegaMenu = () => {
 
   return (
     <div className="relative font-sans">
+      {/* Skip to main content link - ADA compliance */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-white focus:text-blue-600"
+      >
+        Skip to main content
+      </a>
+
       {/* Desktop navigation */}
       {!isMobile && (
-        <nav className="hidden md:block bg-white shadow">
+        <nav className="hidden md:block bg-white shadow" aria-label="Main Navigation">
           <div className="container mx-auto px-4">
-            <ul className="flex space-x-6 py-4">
+            <ul className="flex space-x-6 py-4" role="menubar">
               {menuSections.map((section) => (
-                <li key={section.id} className="group relative">
-                  <button className="font-medium hover:text-blue-600 transition-colors">
+                <li key={section.id} className="group relative" role="none">
+                  <button 
+                    className="font-medium hover:text-blue-600 transition-colors"
+                    aria-expanded={!!activeAccordions[section.id]}
+                    aria-haspopup="true"
+                    role="menuitem"
+                    onClick={() => toggleAccordion(section.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleAccordion(section.id);
+                      }
+                    }}
+                  >
                     {section.title}
                   </button>
                   
                   {/* Mega menu dropdown */}
-                  <div className="absolute left-0 top-full mt-2 hidden group-hover:block w-screen max-w-4xl bg-white shadow-lg rounded-md p-6 z-10">
+                  <div 
+                    className="absolute left-0 top-full mt-2 hidden group-hover:block w-screen max-w-4xl bg-white shadow-lg rounded-md p-6 z-10"
+                    role="menu"
+                    aria-label={`${section.title} submenu`}
+                  >
                     <div className="grid grid-cols-3 gap-8">
                       {section.subSections.map((subSection) => (
                         <div key={subSection.id}>
-                          <h3 className="text-lg font-semibold mb-3">{subSection.title}</h3>
-                          <ul className="space-y-2">
+                          <h3 className="text-lg font-semibold mb-3" id={`${subSection.id}-heading`}>{subSection.title}</h3>
+                          <ul 
+                            className="space-y-2" 
+                            role="menu" 
+                            aria-labelledby={`${subSection.id}-heading`}
+                          >
                             {subSection.items.map((item) => (
-                              <li key={item}>
-                                <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors">
+                              <li key={item} role="none">
+                                <a 
+                                  href="#" 
+                                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                                  role="menuitem"
+                                >
                                   {item}
                                 </a>
                               </li>
@@ -136,52 +197,81 @@ const MobileAccordionMegaMenu = () => {
         <div className="flex justify-between items-center px-4 py-3">
           <div className="text-xl font-bold">Brand</div>
           <button 
+            ref={hamburgerRef}
             onClick={toggleMobileMenu} 
             className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-menu"
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
           >
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            {isMobileMenuOpen ? <X size={24} aria-hidden="true" /> : <Menu size={24} aria-hidden="true" />}
           </button>
         </div>
       </div>
 
       {/* Mobile menu drawer */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
+        <div 
+          id="mobile-menu"
+          ref={menuRef}
+          className="fixed inset-0 z-50 bg-white overflow-y-auto"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile navigation menu"
+          tabIndex={-1}
+        >
           <div className="sticky top-0 bg-white border-b border-gray-200 flex justify-between items-center px-4 py-3">
             <div className="text-xl font-bold">Brand</div>
             <button 
               onClick={toggleMobileMenu} 
               className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+              aria-label="Close menu"
             >
-              <X size={24} />
+              <X size={24} aria-hidden="true" />
             </button>
           </div>
 
           {/* Mobile accordion menu */}
-          <div className="p-4">
-            {menuSections.map((section) => (
-              <div key={section.id} className="border-b border-gray-200">
-                <button 
-                  onClick={() => toggleAccordion(section.id)}
-                  className="w-full py-4 flex justify-between items-center"
-                >
-                  <span className="text-lg font-medium">{section.title}</span>
-                  <ChevronDown 
-                    size={20} 
-                    className={`transition-transform ${activeAccordions[section.id] ? 'rotate-180' : ''}`} 
-                  />
-                </button>
+          <nav aria-label="Mobile Navigation">
+            <div className="p-4">
+              {menuSections.map((section) => (
+                <div key={section.id} className="border-b border-gray-200">
+                  <button 
+                    onClick={() => toggleAccordion(section.id)}
+                    className="w-full py-4 flex justify-between items-center"
+                    aria-expanded={!!activeAccordions[section.id]}
+                    aria-controls={`section-${section.id}`}
+                  >
+                    <span className="text-lg font-medium">{section.title}</span>
+                    <ChevronDown 
+                      size={20} 
+                      className={`transition-transform ${activeAccordions[section.id] ? 'rotate-180' : ''}`}
+                      aria-hidden="true"
+                    />
+                  </button>
 
-                {/* Accordion content */}
-                {activeAccordions[section.id] && (
-                  <div className="pb-4">
+                  {/* Accordion content */}
+                  <div 
+                    id={`section-${section.id}`}
+                    className={`pb-4 ${activeAccordions[section.id] ? 'block' : 'hidden'}`}
+                    role="region"
+                    aria-labelledby={`heading-${section.id}`}
+                  >
                     {section.subSections.map((subSection) => (
                       <div key={subSection.id} className="mb-4">
-                        <h3 className="font-medium text-gray-800 mb-2 pl-4">{subSection.title}</h3>
+                        <h3 
+                          id={`heading-${subSection.id}`}
+                          className="font-medium text-gray-800 mb-2 pl-4"
+                        >
+                          {subSection.title}
+                        </h3>
                         <ul className="space-y-2 pl-8">
                           {subSection.items.map((item) => (
                             <li key={item}>
-                              <a href="#" className="text-gray-600">
+                              <a 
+                                href="#" 
+                                className="text-gray-600 hover:text-blue-600 block py-1"
+                              >
                                 {item}
                               </a>
                             </li>
@@ -190,12 +280,13 @@ const MobileAccordionMegaMenu = () => {
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
+                </div>
+              ))}
+            </div>
+          </nav>
         </div>
       )}
+      <div id="main-content"></div>
     </div>
   );
 };
