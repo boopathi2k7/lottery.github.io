@@ -1,0 +1,327 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { ChevronDown, Menu, X } from 'lucide-react';
+
+const MobileAccordionMegaMenu = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeAccordions, setActiveAccordions] = useState({});
+  const [isMobile, setIsMobile] = useState(false);
+  const menuRef = useRef(null);
+  const hamburgerRef = useRef(null);
+
+  // Check if screen is mobile size
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Initial check
+    checkIfMobile();
+    
+    // Listen for window resize
+    window.addEventListener('resize', checkIfMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
+
+  // Handle Escape key to close menu
+  useEffect(() => {
+    const handleEscKey = (event) => {
+      if (event.key === 'Escape' && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscKey);
+    return () => document.removeEventListener('keydown', handleEscKey);
+  }, [isMobileMenuOpen]);
+
+  // Focus trap for mobile menu
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      // Set focus to the mobile menu when it opens
+      if (menuRef.current) {
+        menuRef.current.focus();
+      }
+    } else {
+      // Return focus to hamburger button when menu closes
+      if (hamburgerRef.current) {
+        hamburgerRef.current.focus();
+      }
+    }
+  }, [isMobileMenuOpen]);
+
+  // Toggle mobile menu
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  // Toggle specific accordion section
+  const toggleAccordion = (sectionId) => {
+    setActiveAccordions(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
+
+  // Menu data structure
+  const menuSections = [
+    {
+      id: 'products',
+      title: 'Products',
+      subSections: [
+        {
+          id: 'clothing',
+          title: 'Clothing',
+          items: ['T-Shirts', 'Shirts', 'Pants', 'Jackets', 'Sweaters']
+        },
+        {
+          id: 'accessories',
+          title: 'Accessories',
+          items: ['Watches', 'Bags', 'Sunglasses', 'Belts', 'Jewelry']
+        },
+        {
+          id: 'shoes',
+          title: 'Shoes',
+          items: ['Sneakers', 'Boots', 'Sandals', 'Formal', 'Sports']
+        }
+      ]
+    },
+    {
+      id: 'collections',
+      title: 'Collections',
+      subSections: [
+        {
+          id: 'seasonal',
+          title: 'Seasonal',
+          items: ['Summer', 'Winter', 'Spring', 'Fall']
+        },
+        {
+          id: 'special',
+          title: 'Special Editions',
+          items: ['Limited Edition', 'Collaborations', 'Designer Series']
+        }
+      ]
+    },
+    {
+      id: 'about',
+      title: 'About',
+      subSections: [
+        {
+          id: 'company',
+          title: 'Company',
+          items: ['Our Story', 'Team', 'Careers', 'Press']
+        },
+        {
+          id: 'contact',
+          title: 'Contact',
+          items: ['Customer Service', 'Find a Store', 'Returns', 'Help']
+        }
+      ]
+    }
+  ];
+
+  return (
+    <div className="relative font-sans">
+      {/* Skip to main content link - ADA compliance */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-white focus:text-blue-600"
+      >
+        Skip to main content
+      </a>
+
+      {/* Desktop navigation */}
+      {!isMobile && (
+        <nav className="hidden md:block bg-white shadow-md border-b border-gray-100" aria-label="Main Navigation">
+          <div className="container mx-auto px-4">
+            <div className="flex justify-between items-center">
+              {/* Logo/Brand */}
+              <div className="py-4">
+                <span className="text-xl font-bold text-blue-700">Brand</span>
+              </div>
+              
+              {/* Main navigation */}
+              <ul className="flex space-x-8 py-4" role="menubar">
+                {menuSections.map((section) => (
+                  <li key={section.id} className="group relative" role="none">
+                    <button 
+                      className="flex items-center gap-1 px-3 py-2 font-medium text-gray-700 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md transition-colors"
+                      aria-expanded={!!activeAccordions[section.id]}
+                      aria-haspopup="true"
+                      role="menuitem"
+                      onClick={() => toggleAccordion(section.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          toggleAccordion(section.id);
+                        }
+                      }}
+                    >
+                      {section.title}
+                      <ChevronDown size={16} className="text-gray-500 group-hover:text-blue-700 transition-colors" aria-hidden="true" />
+                    </button>
+                    
+                    {/* Mega menu dropdown */}
+                    <div 
+                      className="absolute left-0 top-full mt-1 hidden group-hover:block w-screen max-w-4xl bg-white shadow-xl rounded-md p-6 z-10 border border-gray-100"
+                      role="menu"
+                      aria-label={`${section.title} submenu`}
+                    >
+                      <div className="grid grid-cols-3 gap-8">
+                        {section.subSections.map((subSection) => (
+                          <div key={subSection.id} className="p-4 rounded-lg hover:bg-gray-50 transition-colors">
+                            <h3 
+                              className="text-lg font-semibold mb-3 pb-2 border-b border-gray-200 text-blue-700" 
+                              id={`${subSection.id}-heading`}
+                            >
+                              {subSection.title}
+                            </h3>
+                            <ul 
+                              className="space-y-2" 
+                              role="menu" 
+                              aria-labelledby={`${subSection.id}-heading`}
+                            >
+                              {subSection.items.map((item) => (
+                                <li key={item} role="none">
+                                  <a 
+                                    href="#" 
+                                    className="block py-1 text-gray-600 hover:text-blue-700 hover:pl-1 transition-all duration-200"
+                                    role="menuitem"
+                                    tabIndex="0"
+                                  >
+                                    {item}
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              
+              {/* Secondary navigation */}
+              <div className="flex items-center space-x-4">
+                <a 
+                  href="#" 
+                  className="px-4 py-2 text-gray-600 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md transition-colors"
+                  aria-label="Search"
+                >
+                  Search
+                </a>
+                <a 
+                  href="#" 
+                  className="px-4 py-2 bg-blue-700 text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md transition-colors"
+                  aria-label="Sign In"
+                >
+                  Sign In
+                </a>
+              </div>
+            </div>
+          </div>
+        </nav>
+      )}
+
+      {/* Mobile navigation */}
+      <div className="md:hidden bg-white shadow">
+        <div className="flex justify-between items-center px-4 py-3">
+          <div className="text-xl font-bold">Brand</div>
+          <button 
+            ref={hamburgerRef}
+            onClick={toggleMobileMenu} 
+            className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-menu"
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+          >
+            {isMobileMenuOpen ? <X size={24} aria-hidden="true" /> : <Menu size={24} aria-hidden="true" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile menu drawer */}
+      {isMobileMenuOpen && (
+        <div 
+          id="mobile-menu"
+          ref={menuRef}
+          className="fixed inset-0 z-50 bg-white overflow-y-auto"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile navigation menu"
+          tabIndex={-1}
+        >
+          <div className="sticky top-0 bg-white border-b border-gray-200 flex justify-between items-center px-4 py-3">
+            <div className="text-xl font-bold">Brand</div>
+            <button 
+              onClick={toggleMobileMenu} 
+              className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+              aria-label="Close menu"
+            >
+              <X size={24} aria-hidden="true" />
+            </button>
+          </div>
+
+          {/* Mobile accordion menu */}
+          <nav aria-label="Mobile Navigation">
+            <div className="p-4">
+              {menuSections.map((section) => (
+                <div key={section.id} className="border-b border-gray-200">
+                  <button 
+                    onClick={() => toggleAccordion(section.id)}
+                    className="w-full py-4 flex justify-between items-center"
+                    aria-expanded={!!activeAccordions[section.id]}
+                    aria-controls={`section-${section.id}`}
+                  >
+                    <span className="text-lg font-medium">{section.title}</span>
+                    <ChevronDown 
+                      size={20} 
+                      className={`transition-transform ${activeAccordions[section.id] ? 'rotate-180' : ''}`}
+                      aria-hidden="true"
+                    />
+                  </button>
+
+                  {/* Accordion content */}
+                  <div 
+                    id={`section-${section.id}`}
+                    className={`pb-4 ${activeAccordions[section.id] ? 'block' : 'hidden'}`}
+                    role="region"
+                    aria-labelledby={`heading-${section.id}`}
+                  >
+                    {section.subSections.map((subSection) => (
+                      <div key={subSection.id} className="mb-4">
+                        <h3 
+                          id={`heading-${subSection.id}`}
+                          className="font-medium text-gray-800 mb-2 pl-4"
+                        >
+                          {subSection.title}
+                        </h3>
+                        <ul className="space-y-2 pl-8">
+                          {subSection.items.map((item) => (
+                            <li key={item}>
+                              <a 
+                                href="#" 
+                                className="text-gray-600 hover:text-blue-600 block py-1"
+                              >
+                                {item}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </nav>
+        </div>
+      )}
+      <div id="main-content"></div>
+    </div>
+  );
+};
+
+export default MobileAccordionMegaMenu;
