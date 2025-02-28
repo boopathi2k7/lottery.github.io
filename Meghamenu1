@@ -1,348 +1,203 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { ChevronDown, Menu, X } from 'lucide-react';
 
-const MegaMenu = () => {
-  // Sample menu data structure
-  const menuData = [
+const MobileAccordionMegaMenu = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeAccordions, setActiveAccordions] = useState({});
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if screen is mobile size
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Initial check
+    checkIfMobile();
+    
+    // Listen for window resize
+    window.addEventListener('resize', checkIfMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
+
+  // Toggle mobile menu
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  // Toggle specific accordion section
+  const toggleAccordion = (sectionId) => {
+    setActiveAccordions(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
+
+  // Menu data structure
+  const menuSections = [
     {
       id: 'products',
-      label: 'Products',
-      submenu: [
+      title: 'Products',
+      subSections: [
         {
-          title: 'Software',
-          items: [
-            { name: 'Analytics Platform', url: '/analytics' },
-            { name: 'CRM Solutions', url: '/crm' },
-            { name: 'Enterprise Software', url: '/enterprise' }
-          ]
+          id: 'clothing',
+          title: 'Clothing',
+          items: ['T-Shirts', 'Shirts', 'Pants', 'Jackets', 'Sweaters']
         },
         {
-          title: 'Hardware',
-          items: [
-            { name: 'Laptops', url: '/laptops' },
-            { name: 'Tablets', url: '/tablets' },
-            { name: 'Mobile Devices', url: '/mobile' }
-          ]
+          id: 'accessories',
+          title: 'Accessories',
+          items: ['Watches', 'Bags', 'Sunglasses', 'Belts', 'Jewelry']
         },
         {
-          title: 'Services',
-          items: [
-            { name: 'Cloud Solutions', url: '/cloud' },
-            { name: 'Consulting', url: '/consulting' },
-            { name: 'Support', url: '/support' }
-          ]
+          id: 'shoes',
+          title: 'Shoes',
+          items: ['Sneakers', 'Boots', 'Sandals', 'Formal', 'Sports']
         }
       ]
     },
     {
-      id: 'solutions',
-      label: 'Solutions',
-      submenu: [
+      id: 'collections',
+      title: 'Collections',
+      subSections: [
         {
-          title: 'By Industry',
-          items: [
-            { name: 'Healthcare', url: '/healthcare' },
-            { name: 'Finance', url: '/finance' },
-            { name: 'Education', url: '/education' }
-          ]
+          id: 'seasonal',
+          title: 'Seasonal',
+          items: ['Summer', 'Winter', 'Spring', 'Fall']
         },
         {
-          title: 'By Business Size',
-          items: [
-            { name: 'Enterprise', url: '/enterprise-solutions' },
-            { name: 'Small Business', url: '/small-business' },
-            { name: 'Startups', url: '/startups' }
-          ]
-        }
-      ]
-    },
-    {
-      id: 'resources',
-      label: 'Resources',
-      submenu: [
-        {
-          title: 'Learning',
-          items: [
-            { name: 'Documentation', url: '/docs' },
-            { name: 'Tutorials', url: '/tutorials' },
-            { name: 'Webinars', url: '/webinars' }
-          ]
-        },
-        {
-          title: 'Community',
-          items: [
-            { name: 'Forums', url: '/forums' },
-            { name: 'Events', url: '/events' },
-            { name: 'Blog', url: '/blog' }
-          ]
+          id: 'special',
+          title: 'Special Editions',
+          items: ['Limited Edition', 'Collaborations', 'Designer Series']
         }
       ]
     },
     {
       id: 'about',
-      label: 'About',
-      url: '/about'
-    },
-    {
-      id: 'contact',
-      label: 'Contact',
-      url: '/contact'
+      title: 'About',
+      subSections: [
+        {
+          id: 'company',
+          title: 'Company',
+          items: ['Our Story', 'Team', 'Careers', 'Press']
+        },
+        {
+          id: 'contact',
+          title: 'Contact',
+          items: ['Customer Service', 'Find a Store', 'Returns', 'Help']
+        }
+      ]
     }
   ];
 
-  const [activeMenu, setActiveMenu] = useState(null);
-  const [focusedItem, setFocusedItem] = useState(null);
-  const menuRefs = useRef({});
-  const timeoutRef = useRef(null);
-
-  // Handle keyboard navigation
-  const handleKeyDown = (e, menuId, itemIndex, columnIndex, rowIndex) => {
-    const currentMenu = menuData.find(item => item.id === menuId);
-    
-    switch (e.key) {
-      case 'Escape':
-        setActiveMenu(null);
-        if (menuRefs.current[menuId]) {
-          menuRefs.current[menuId].focus();
-        }
-        break;
-      
-      case 'ArrowDown':
-        e.preventDefault();
-        if (activeMenu && currentMenu?.submenu) {
-          if (rowIndex === undefined) {
-            // Focus on first item of first column
-            setFocusedItem({menuId, columnIndex: 0, rowIndex: 0});
-          } else if (currentMenu.submenu[columnIndex] && 
-                     rowIndex < currentMenu.submenu[columnIndex].items.length - 1) {
-            // Move to next item in same column
-            setFocusedItem({menuId, columnIndex, rowIndex: rowIndex + 1});
-          }
-        } else if (!activeMenu) {
-          // Open submenu on arrow down from main menu
-          if (currentMenu?.submenu) {
-            setActiveMenu(menuId);
-            setFocusedItem({menuId, columnIndex: 0, rowIndex: 0});
-          }
-        }
-        break;
-      
-      case 'ArrowUp':
-        e.preventDefault();
-        if (activeMenu && rowIndex !== undefined && rowIndex > 0) {
-          // Move to previous item in same column
-          setFocusedItem({menuId, columnIndex, rowIndex: rowIndex - 1});
-        } else if (activeMenu && rowIndex === 0) {
-          // Move focus back to top-level menu item
-          setActiveMenu(null);
-          if (menuRefs.current[menuId]) {
-            menuRefs.current[menuId].focus();
-          }
-        }
-        break;
-      
-      case 'ArrowRight':
-        e.preventDefault();
-        if (activeMenu && columnIndex !== undefined) {
-          if (currentMenu?.submenu && columnIndex < currentMenu.submenu.length - 1) {
-            // Move to same row in next column
-            const nextRowIndex = Math.min(
-              rowIndex, 
-              currentMenu.submenu[columnIndex + 1].items.length - 1
-            );
-            setFocusedItem({menuId, columnIndex: columnIndex + 1, rowIndex: nextRowIndex});
-          }
-        } else {
-          // Move to next top-level menu item
-          const currentIndex = menuData.findIndex(item => item.id === menuId);
-          if (currentIndex < menuData.length - 1) {
-            const nextMenu = menuData[currentIndex + 1];
-            if (menuRefs.current[nextMenu.id]) {
-              menuRefs.current[nextMenu.id].focus();
-            }
-          }
-        }
-        break;
-      
-      case 'ArrowLeft':
-        e.preventDefault();
-        if (activeMenu && columnIndex !== undefined && columnIndex > 0) {
-          // Move to same row in previous column
-          const prevRowIndex = Math.min(
-            rowIndex, 
-            currentMenu.submenu[columnIndex - 1].items.length - 1
-          );
-          setFocusedItem({menuId, columnIndex: columnIndex - 1, rowIndex: prevRowIndex});
-        } else {
-          // Move to previous top-level menu item
-          const currentIndex = menuData.findIndex(item => item.id === menuId);
-          if (currentIndex > 0) {
-            const prevMenu = menuData[currentIndex - 1];
-            if (menuRefs.current[prevMenu.id]) {
-              menuRefs.current[prevMenu.id].focus();
-            }
-          }
-        }
-        break;
-      
-      case 'Enter':
-      case ' ':
-        e.preventDefault();
-        if (!activeMenu && currentMenu?.submenu) {
-          setActiveMenu(menuId);
-          setFocusedItem({menuId, columnIndex: 0, rowIndex: 0});
-        }
-        break;
-        
-      case 'Tab':
-        setActiveMenu(null);
-        break;
-        
-      default:
-        break;
-    }
-  };
-
-  // Focus on the appropriate element when focusedItem changes
-  useEffect(() => {
-    if (focusedItem) {
-      const { menuId, columnIndex, rowIndex } = focusedItem;
-      const itemId = `${menuId}-col${columnIndex}-item${rowIndex}`;
-      const element = document.getElementById(itemId);
-      if (element) {
-        element.focus();
-      }
-    }
-  }, [focusedItem]);
-
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (activeMenu && !e.target.closest('.mega-menu')) {
-        setActiveMenu(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [activeMenu]);
-
-  // Handle delayed menu opening/closing for better UX
-  const handleMenuEnter = (menuId) => {
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      setActiveMenu(menuId);
-    }, 200);
-  };
-
-  const handleMenuLeave = () => {
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      setActiveMenu(null);
-    }, 300);
-  };
-
-  // Clean up timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
-
   return (
-    <nav 
-      className="mega-menu bg-gray-800 text-white" 
-      role="navigation" 
-      aria-label="Main Navigation"
-    >
-      <div className="max-w-6xl mx-auto">
-        <ul className="flex items-center space-x-1 p-0 m-0 list-none">
-          {menuData.map((menuItem) => (
-            <li 
-              key={menuItem.id} 
-              className="relative"
-              onMouseEnter={() => handleMenuEnter(menuItem.id)}
-              onMouseLeave={handleMenuLeave}
-            >
-              {menuItem.submenu ? (
-                <>
-                  <button
-                    id={`menu-${menuItem.id}`}
-                    ref={el => menuRefs.current[menuItem.id] = el}
-                    className={`px-4 py-3 block font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white ${
-                      activeMenu === menuItem.id ? 'bg-gray-700' : ''
-                    }`}
-                    aria-expanded={activeMenu === menuItem.id}
-                    aria-haspopup="true"
-                    aria-controls={`submenu-${menuItem.id}`}
-                    onClick={() => setActiveMenu(activeMenu === menuItem.id ? null : menuItem.id)}
-                    onKeyDown={(e) => handleKeyDown(e, menuItem.id)}
-                  >
-                    {menuItem.label}
-                    <span aria-hidden="true" className="ml-1">▼</span>
+    <div className="relative font-sans">
+      {/* Desktop navigation */}
+      {!isMobile && (
+        <nav className="hidden md:block bg-white shadow">
+          <div className="container mx-auto px-4">
+            <ul className="flex space-x-6 py-4">
+              {menuSections.map((section) => (
+                <li key={section.id} className="group relative">
+                  <button className="font-medium hover:text-blue-600 transition-colors">
+                    {section.title}
                   </button>
-                  {activeMenu === menuItem.id && (
-                    <div
-                      id={`submenu-${menuItem.id}`}
-                      className="absolute left-0 mt-1 bg-white text-gray-800 shadow-lg rounded-md p-4 min-w-max z-10"
-                      onMouseEnter={() => clearTimeout(timeoutRef.current)}
-                      onMouseLeave={handleMenuLeave}
-                      role="menu"
-                      aria-labelledby={`menu-${menuItem.id}`}
-                    >
-                      <div className="flex gap-8">
-                        {menuItem.submenu.map((column, columnIndex) => (
-                          <div key={`${menuItem.id}-col-${columnIndex}`} className="min-w-40">
-                            <h3 id={`${menuItem.id}-heading-${columnIndex}`} className="text-sm font-bold uppercase mb-2 text-gray-500">
-                              {column.title}
-                            </h3>
-                            <ul 
-                              className="space-y-2 p-0 m-0 list-none" 
-                              aria-labelledby={`${menuItem.id}-heading-${columnIndex}`}
-                            >
-                              {column.items.map((item, rowIndex) => (
-                                <li key={`${menuItem.id}-${columnIndex}-${rowIndex}`}>
-                                  <a
-                                    id={`${menuItem.id}-col${columnIndex}-item${rowIndex}`}
-                                    href={item.url}
-                                    className="block px-2 py-1 text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded focus:outline-none focus:bg-gray-100 focus:text-gray-900"
-                                    role="menuitem"
-                                    tabIndex={focusedItem && 
-                                      focusedItem.menuId === menuItem.id && 
-                                      focusedItem.columnIndex === columnIndex && 
-                                      focusedItem.rowIndex === rowIndex ? 0 : -1}
-                                    onKeyDown={(e) => handleKeyDown(e, menuItem.id, columnIndex, rowIndex)}
-                                  >
-                                    {item.name}
-                                  </a>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        ))}
-                      </div>
+                  
+                  {/* Mega menu dropdown */}
+                  <div className="absolute left-0 top-full mt-2 hidden group-hover:block w-screen max-w-4xl bg-white shadow-lg rounded-md p-6 z-10">
+                    <div className="grid grid-cols-3 gap-8">
+                      {section.subSections.map((subSection) => (
+                        <div key={subSection.id}>
+                          <h3 className="text-lg font-semibold mb-3">{subSection.title}</h3>
+                          <ul className="space-y-2">
+                            {subSection.items.map((item) => (
+                              <li key={item}>
+                                <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors">
+                                  {item}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
                     </div>
-                  )}
-                </>
-              ) : (
-                <a
-                  ref={el => menuRefs.current[menuItem.id] = el}
-                  href={menuItem.url}
-                  className="px-4 py-3 block font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
-                  onKeyDown={(e) => handleKeyDown(e, menuItem.id)}
-                >
-                  {menuItem.label}
-                </a>
-              )}
-            </li>
-          ))}
-        </ul>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </nav>
+      )}
+
+      {/* Mobile navigation */}
+      <div className="md:hidden bg-white shadow">
+        <div className="flex justify-between items-center px-4 py-3">
+          <div className="text-xl font-bold">Brand</div>
+          <button 
+            onClick={toggleMobileMenu} 
+            className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
-    </nav>
+
+      {/* Mobile menu drawer */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
+          <div className="sticky top-0 bg-white border-b border-gray-200 flex justify-between items-center px-4 py-3">
+            <div className="text-xl font-bold">Brand</div>
+            <button 
+              onClick={toggleMobileMenu} 
+              className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          {/* Mobile accordion menu */}
+          <div className="p-4">
+            {menuSections.map((section) => (
+              <div key={section.id} className="border-b border-gray-200">
+                <button 
+                  onClick={() => toggleAccordion(section.id)}
+                  className="w-full py-4 flex justify-between items-center"
+                >
+                  <span className="text-lg font-medium">{section.title}</span>
+                  <ChevronDown 
+                    size={20} 
+                    className={`transition-transform ${activeAccordions[section.id] ? 'rotate-180' : ''}`} 
+                  />
+                </button>
+
+                {/* Accordion content */}
+                {activeAccordions[section.id] && (
+                  <div className="pb-4">
+                    {section.subSections.map((subSection) => (
+                      <div key={subSection.id} className="mb-4">
+                        <h3 className="font-medium text-gray-800 mb-2 pl-4">{subSection.title}</h3>
+                        <ul className="space-y-2 pl-8">
+                          {subSection.items.map((item) => (
+                            <li key={item}>
+                              <a href="#" className="text-gray-600">
+                                {item}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
-export default MegaMenu;
+export default MobileAccordionMegaMenu;
