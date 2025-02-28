@@ -1,0 +1,123 @@
+# Comparison of Message Queues: RabbitMQ vs Redis vs Kafka
+
+This document provides a detailed comparison of RabbitMQ, Redis, and Kafka for handling article publishing workflows. It covers message retention, delayed publishing, scalability, and behavior during system restarts.
+
+## 1. Feature Comparison Table
+
+| Feature                 | RabbitMQ (Best for Workflow) | Redis (Fast & Lightweight) | Kafka (Best for Event Streaming) |
+|-------------------------|----------------------------|---------------------------|---------------------------------|
+| **Message Persistence** | Yes (Durable queues)       | No (unless AOF enabled)   | Yes (Log-based storage)        |
+| **Ordering**            | Yes (FIFO per queue)       | Yes (FIFO in List/Stream) | Yes (Per partition)           |
+| **Delayed Messages**    | Yes (TTL & Delayed Exchange) | Yes (Sorted Set with Expiry) | Requires external scheduler |
+| **Scalability**         | Medium (Cluster support)   | High (Fast but limited storage) | Very High (Distributed system) |
+| **Reliability**         | High (Acknowledgments & retries) | Medium (No built-in durability) | High (Replication & log-based durability) |
+| **Retention After Restart** | Yes (If durable queues are used) | No (Unless AOF/RDB is enabled) | Yes (Stored in partitions) |
+| **Concurrency Support** | Good (Multiple consumers per queue) | Good (Atomic operations) | Excellent (Parallel consumers per partition) |
+| **Use Case**            | Workflow processing, retries, and scheduling | Simple, fast queuing | Large-scale event-driven architecture |
+
+## 2. Delayed Message Handling
+### **RabbitMQ** (Best for Workflow & Future Scheduling)
+- Uses **TTL (Time-To-Live)** and **Delayed Exchange** for future scheduling.
+- If a message is scheduled for 2 days, it remains in the queue until the delay expires.
+- If RabbitMQ restarts, **durable queues and persistent messages ensure message retention**.
+
+**Example Implementation (Java - RabbitMQ):**
+```java
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+
+public class RabbitMQDelayedMessage {
+    private final static String QUEUE_NAME = "article_queue";
+
+    public static void main(String[] args) throws Exception {
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost("localhost");
+        try (Connection connection = factory.newConnection();
+             Channel channel = connection.createChannel()) {
+
+            channel.queueDeclare(QUEUE_NAME, true, false, false, null);
+            String message = "Article: 101";
+            AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
+                    .expiration("172800000") // 2 days in milliseconds
+                    .deliveryMode(2) // Persistent message
+                    .build();
+
+            channel.basicPublish("", QUEUE_NAME, properties, message.getBytes());
+            System.out.println("Article scheduled for publishing after 2 days.");
+        }
+    }
+}
+```
+
+### **Redis** (Best for Simple Delayed Processing, Not Persistent by Default)
+- Uses **Sorted Sets (`ZADD`) with timestamps** to delay messages.
+- If Redis restarts and persistence (AOF/RDB) is **not enabled**, **messages are lost**.
+- Requires a polling mechanism to check and process messages.
+
+**Example Implementation (Java - Redis):**
+```java
+import redis.clients.jedis.Jedis;
+
+public class RedisDelayedMessage {
+    public static void main(String[] args) {
+        try (Jedis jedis = new Jedis("localhost")) {
+            long delayedTime = System.currentTimeMillis() / 1000 + (2 * 24 * 60 * 60);
+            jedis.zadd("article_queue", delayedTime, "Article: 101");
+            System.out.println("Article scheduled for publishing in 2 days.");
+        }
+    }
+}
+```
+
+### **Kafka** (Best for High Throughput, Requires External Scheduling for Delays)
+- Kafka **does not natively support delayed messages**.
+- Requires an **external scheduler** (e.g., a database or another service to track publish times).
+- Messages persist **even after restart**, as they are stored in **partitions** with configurable retention.
+
+**Example Implementation (Java - Kafka):**
+```java
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
+
+import java.util.Properties;
+
+public class KafkaDelayedMessage {
+    public static void main(String[] args) {
+        Properties props = new Properties();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+
+        try (Producer<String, String> producer = new KafkaProducer<>(props)) {
+            long futurePublishTime = System.currentTimeMillis() + (2 * 24 * 60 * 60 * 1000);
+            String message = "Article: 101, PublishTime: " + futurePublishTime;
+            producer.send(new ProducerRecord<>("article_topic", message));
+            System.out.println("Article stored with future publish metadata.");
+        }
+    }
+}
+```
+
+## 3. Behavior on System Restart
+
+| Scenario                | RabbitMQ                  | Redis                      | Kafka                      |
+|-------------------------|--------------------------|----------------------------|----------------------------|
+| **Message Retention**   | Yes (If durable queues)  | No (Unless AOF is enabled) | Yes (Stored in partitions) |
+| **Delayed Messages**    | Yes (TTL & DLX)          | Yes (Sorted Set)           | No native support (Use scheduler) |
+| **Processing Recovery** | Yes (Consumers reattach) | No (Lost if not persistent) | Yes (Consumers can reprocess) |
+
+## 4. Best Choice Based on Requirements
+- **Use RabbitMQ** if you need **workflows, retries, and delayed publishing**.
+- **Use Redis** if you need **lightweight, fast queuing without persistence concerns**.
+- **Use Kafka** if you need **event-driven architecture and high scalability**.
+
+## 5. Conclusion
+For **your use case** (publishing articles after review, with potential future scheduling and a queue limit of 100):
+- **RabbitMQ is the best option**, as it supports **delayed messages, persistence, and retries**.
+- Redis is an option **only if you enable AOF persistence** and use **sorted sets for delays**.
+- Kafka is useful if you expect **high throughput or event-driven behavior**.
+
+Would you like assistance in setting up a full **RabbitMQ-based workflow** for your article publishing system?
