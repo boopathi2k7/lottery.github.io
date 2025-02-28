@@ -1,0 +1,286 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Menu, X, ChevronDown, ChevronUp, Search } from 'lucide-react';
+
+const ResponsiveHeader = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [expandedItems, setExpandedItems] = useState({});
+  const [isMobile, setIsMobile] = useState(false);
+  const menuRef = useRef(null);
+
+  // Menu structure with nested items
+  const menuItems = [
+    {
+      id: 'products',
+      label: 'Products',
+      subItems: [
+        { id: 'software', label: 'Software Solutions', url: '/products/software' },
+        { id: 'hardware', label: 'Hardware Products', url: '/products/hardware' },
+        { id: 'services', label: 'Services', url: '/products/services' }
+      ]
+    },
+    {
+      id: 'solutions',
+      label: 'Solutions',
+      subItems: [
+        { id: 'enterprise', label: 'Enterprise', url: '/solutions/enterprise' },
+        { id: 'small-business', label: 'Small Business', url: '/solutions/small-business' },
+        { id: 'healthcare', label: 'Healthcare', url: '/solutions/healthcare' }
+      ]
+    },
+    {
+      id: 'resources',
+      label: 'Resources',
+      subItems: [
+        { id: 'blog', label: 'Blog', url: '/resources/blog' },
+        { id: 'documentation', label: 'Documentation', url: '/resources/documentation' },
+        { id: 'support', label: 'Support', url: '/resources/support' }
+      ]
+    },
+    { id: 'contact', label: 'Contact', url: '/contact' }
+  ];
+
+  // Check if the viewport width indicates a mobile device
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    handleResize(); // Initial check
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
+
+  // Toggle submenu expansion for accordion (mobile view)
+  const toggleExpand = (id) => {
+    setExpandedItems((prev) => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e, id, hasSubItems, url) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (hasSubItems) {
+        toggleExpand(id);
+      } else if (url) {
+        // Navigate to URL
+        console.log(`Navigating to: ${url}`);
+      }
+    }
+  };
+
+  // Render submenu or dropdown based on device
+  const renderSubItems = (item) => {
+    if (!item.subItems) return null;
+
+    const isExpanded = expandedItems[item.id];
+
+    return (
+      <div 
+        className={`${isMobile ? 'pl-4 py-2' : 'absolute bg-white shadow-md rounded-md min-w-48'} ${
+          isMobile ? 'block' : isExpanded ? 'block' : 'hidden'
+        }`}
+        id={`submenu-${item.id}`}
+        aria-labelledby={`menuitem-${item.id}`}
+        role="menu"
+      >
+        {item.subItems.map((subItem) => (
+          <a
+            key={subItem.id}
+            href={subItem.url}
+            className={`block px-4 py-2 hover:bg-gray-100 text-gray-800 ${isMobile ? '' : 'whitespace-nowrap'}`}
+            role="menuitem"
+          >
+            {subItem.label}
+          </a>
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <header className="bg-white shadow-md">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <div className="flex-shrink-0">
+            <a href="/" className="text-xl font-bold text-blue-600">
+              CompanyLogo
+            </a>
+          </div>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:block">
+            <ul className="flex space-x-4" role="menubar" aria-label="Main Navigation">
+              {menuItems.map((item) => (
+                <li 
+                  key={item.id} 
+                  className="relative group"
+                  role="none"
+                  onMouseEnter={() => item.subItems && setExpandedItems({...expandedItems, [item.id]: true})}
+                  onMouseLeave={() => item.subItems && setExpandedItems({...expandedItems, [item.id]: false})}
+                >
+                  {item.subItems ? (
+                    <button
+                      id={`menuitem-${item.id}`}
+                      className="px-3 py-2 flex items-center text-gray-700 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
+                      aria-haspopup="true"
+                      aria-expanded={expandedItems[item.id] || false}
+                      aria-controls={`submenu-${item.id}`}
+                      role="menuitem"
+                      onKeyDown={(e) => handleKeyDown(e, item.id, true)}
+                      onClick={() => toggleExpand(item.id)}
+                    >
+                      {item.label}
+                      <ChevronDown className="ml-1 h-4 w-4" />
+                    </button>
+                  ) : (
+                    <a
+                      href={item.url}
+                      className="px-3 py-2 text-gray-700 hover:text-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      role="menuitem"
+                    >
+                      {item.label}
+                    </a>
+                  )}
+                  {item.subItems && renderSubItems(item)}
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* Search button (desktop) */}
+          <div className="hidden md:flex items-center">
+            <button
+              aria-label="Search"
+              className="p-2 text-gray-600 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full"
+            >
+              <Search className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden flex">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 rounded-md text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-menu"
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {isMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      {isMenuOpen && (
+        <div 
+          id="mobile-menu" 
+          className="md:hidden" 
+          role="navigation" 
+          aria-label="Mobile Navigation"
+          ref={menuRef}
+        >
+          <div className="px-2 pt-2 pb-3 space-y-1 border-t">
+            {/* Search input (mobile) */}
+            <div className="px-3 py-2">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Search"
+                />
+                <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+              </div>
+            </div>
+            
+            {/* Accordion menu for mobile */}
+            <div role="menu" className="space-y-1">
+              {menuItems.map((item) => (
+                <div key={item.id} className="border-b border-gray-200 last:border-0">
+                  {item.subItems ? (
+                    <>
+                      <button
+                        id={`mobile-menuitem-${item.id}`}
+                        className="w-full flex justify-between items-center px-3 py-3 text-left text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                        onClick={() => toggleExpand(item.id)}
+                        aria-expanded={expandedItems[item.id] || false}
+                        aria-controls={`mobile-submenu-${item.id}`}
+                        role="menuitem"
+                        aria-haspopup="true"
+                      >
+                        <span>{item.label}</span>
+                        {expandedItems[item.id] ? (
+                          <ChevronUp className="h-5 w-5" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5" />
+                        )}
+                      </button>
+                      {expandedItems[item.id] && (
+                        <div 
+                          id={`mobile-submenu-${item.id}`}
+                          className="pl-4 pb-2"
+                          role="menu"
+                          aria-labelledby={`mobile-menuitem-${item.id}`}
+                        >
+                          {item.subItems.map((subItem) => (
+                            <a
+                              key={subItem.id}
+                              href={subItem.url}
+                              className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-md"
+                              role="menuitem"
+                            >
+                              {subItem.label}
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <a
+                      href={item.url}
+                      className="block px-3 py-3 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                      role="menuitem"
+                    >
+                      {item.label}
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+};
+
+export default ResponsiveHeader;
