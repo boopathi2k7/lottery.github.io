@@ -1,0 +1,77 @@
+// redux/modalSlice.js
+import { createSlice } from '@reduxjs/toolkit';
+
+const modalSlice = createSlice({
+  name: 'modal',
+  initialState: {
+    isModalOpen: false,
+    isLoading: false,
+  },
+  reducers: {
+    openModal: (state) => {
+      state.isModalOpen = true;
+      state.isLoading = true; // Start loading when modal opens
+    },
+    closeModal: (state) => {
+      state.isModalOpen = false;
+      state.isLoading = false;
+    },
+    stopLoading: (state) => {
+      state.isLoading = false; // Stop loading after some async action
+    },
+  },
+});
+
+export const { openModal, closeModal, stopLoading } = modalSlice.actions;
+export default modalSlice.reducer;
+
+
+
+// components/MyModal.js
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { openModal, closeModal, stopLoading } from '../redux/modalSlice';
+
+const MyModal = () => {
+  const dispatch = useDispatch();
+  const { isModalOpen, isLoading } = useSelector((state) => state.modal);
+
+  // Simulate an async action (e.g., fetching data) when modal opens
+  useEffect(() => {
+    if (isModalOpen && isLoading) {
+      setTimeout(() => {
+        dispatch(stopLoading()); // Stop loading after 2 seconds
+      }, 2000); // Simulated delay
+    }
+  }, [isModalOpen, isLoading, dispatch]);
+
+  const handleOpenModal = () => {
+    dispatch(openModal());
+  };
+
+  const handleCloseModal = () => {
+    dispatch(closeModal());
+  };
+
+  return (
+    <div>
+      <button onClick={handleOpenModal}>Open Modal</button>
+
+      {isModalOpen && (
+        <div className="modal">
+          {isLoading ? (
+            <div className="loader">Loading...</div> // Simple loader
+          ) : (
+            <div>
+              <h2>Modal Content</h2>
+              <p>This is the modal content after loading.</p>
+              <button onClick={handleCloseModal}>Close</button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default MyModal;
