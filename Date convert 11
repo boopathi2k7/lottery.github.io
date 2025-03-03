@@ -1,0 +1,69 @@
+import React, { useState } from 'react';
+
+const SimpleDateConverter = () => {
+  const [inputDate, setInputDate] = useState('25 February 2025');
+  const [formattedDate, setFormattedDate] = useState('');
+
+  const convertDate = () => {
+    // Define month mapping
+    const months = {
+      'January': '01',
+      'February': '02',
+      'March': '03',
+      'April': '04',
+      'May': '05',
+      'June': '06',
+      'July': '07',
+      'August': '08',
+      'September': '09',
+      'October': '10',
+      'November': '11',
+      'December': '12'
+    };
+    
+    try {
+      // Split the input into day, month, year
+      const [day, month, year] = inputDate.split(' ');
+      
+      // Format the date as YYYY-MM-DD
+      const paddedDay = day.padStart(2, '0');
+      const result = `${year}-${months[month]}-${paddedDay}`;
+      
+      setFormattedDate(result);
+    } catch (error) {
+      setFormattedDate('Invalid format');
+    }
+  };
+
+  return (
+    <div className="p-4 max-w-sm mx-auto">
+      <h2 className="text-lg font-bold mb-2">Date Converter</h2>
+      
+      <input
+        type="text"
+        value={inputDate}
+        onChange={(e) => setInputDate(e.target.value)}
+        className="w-full p-2 border rounded mb-2"
+      />
+      
+      <button
+        onClick={convertDate}
+        className="w-full bg-blue-500 text-white p-2 rounded mb-2"
+      >
+        Convert
+      </button>
+      
+      {formattedDate && (
+        <div className="mt-2 p-2 bg-gray-100 rounded">
+          {formattedDate}
+        </div>
+      )}
+      
+      <div className="mt-2 text-sm text-gray-600">
+        Example: "25 February 2025" → "2025-02-25"
+      </div>
+    </div>
+  );
+};
+
+export default SimpleDateConverter;
