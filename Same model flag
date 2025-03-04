@@ -1,0 +1,152 @@
+// actions.js
+import { createSlice } from '@reduxjs/toolkit';
+
+// Initial state for modal slice
+const initialState = {
+  isModalOpen: false,
+  modalType: null, // 'add' or 'edit'
+  selectedItem: null // for edit mode
+};
+
+// Create modal slice
+const modalSlice = createSlice({
+  name: 'modal',
+  initialState,
+  reducers: {
+    // Open modal for adding new item
+    openAddModal: (state) => {
+      state.isModalOpen = true;
+      state.modalType = 'add';
+      state.selectedItem = null;
+    },
+    
+    // Open modal for editing existing item
+    openEditModal: (state, action) => {
+      state.isModalOpen = true;
+      state.modalType = 'edit';
+      state.selectedItem = action.payload;
+    },
+    
+    // Close modal
+    closeModal: (state) => {
+      state.isModalOpen = false;
+      state.modalType = null;
+      state.selectedItem = null;
+    }
+  }
+});
+
+// Export actions
+export const { 
+  openAddModal, 
+  openEditModal, 
+  closeModal 
+} = modalSlice.actions;
+
+export default modalSlice.reducer;
+
+// ExampleComponent.js
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { openAddModal, openEditModal, closeModal } from './modalSlice';
+
+const ExampleComponent = () => {
+  const dispatch = useDispatch();
+  const { isModalOpen, modalType, selectedItem } = useSelector((state) => state.modal);
+
+  // Handler for opening add modal
+  const handleOpenAddModal = () => {
+    dispatch(openAddModal());
+  };
+
+  // Handler for opening edit modal
+  const handleOpenEditModal = (item) => {
+    dispatch(openEditModal(item));
+  };
+
+  // Handler for closing modal
+  const handleCloseModal = () => {
+    dispatch(closeModal());
+  };
+
+  return (
+    <div>
+      {/* Button to open add modal */}
+      <button onClick={handleOpenAddModal}>
+        Add New Item
+      </button>
+
+      {/* Example list with edit buttons */}
+      <div>
+        {/* Assume you have a list of items */}
+        {[{id: 1, name: 'Item 1'}, {id: 2, name: 'Item 2'}].map((item) => (
+          <div key={item.id}>
+            {item.name}
+            <button onClick={() => handleOpenEditModal(item)}>
+              Edit
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Modal Component */}
+      {isModalOpen && (
+        <div className="modal">
+          <div className="modal-content">
+            <h2>{modalType === 'add' ? 'Add New Item' : 'Edit Item'}</h2>
+            
+            {/* Conditional rendering based on modal type */}
+            {modalType === 'add' ? (
+              <form>
+                {/* Add form fields */}
+                <input type="text" placeholder="New Item Name" />
+              </form>
+            ) : (
+              <form>
+                {/* Edit form fields pre-populated with selectedItem */}
+                <input 
+                  type="text" 
+                  defaultValue={selectedItem?.name} 
+                  placeholder="Edit Item Name" 
+                />
+              </form>
+            )}
+
+            <button onClick={handleCloseModal}>Close</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ExampleComponent;
+
+// store.js
+import { configureStore } from '@reduxjs/toolkit';
+import modalReducer from './modalSlice';
+
+const store = configureStore({
+  reducer: {
+    modal: modalReducer,
+    // Add other reducers here
+  }
+});
+
+export default store;
+
+// App.js or index.js
+import React from 'react';
+import { Provider } from 'react-redux';
+import store from './store';
+import ExampleComponent from './ExampleComponent';
+
+function App() {
+  return (
+    <Provider store={store}>
+      <ExampleComponent />
+    </Provider>
+  );
+}
+
+export default App;
