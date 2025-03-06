@@ -1,0 +1,67 @@
+import React, { useState } from 'react';
+import { Typeahead } from 'react-bootstrap-typeahead';
+
+// This would normally be imported like this in your actual project:
+// import 'react-bootstrap-typeahead/css/Typeahead.css';
+
+const TypeaheadWithDefaultSelection = () => {
+  // Sample data for the typeahead
+  const options = [
+    { id: 1, name: 'Alabama' },
+    { id: 2, name: 'Alaska' },
+    { id: 3, name: 'Arizona' },
+    { id: 4, name: 'Arkansas' },
+    { id: 5, name: 'California' },
+    { id: 6, name: 'Colorado' },
+    { id: 7, name: 'Connecticut' },
+    { id: 8, name: 'Delaware' },
+    { id: 9, name: 'Florida' },
+    { id: 10, name: 'Georgia' }
+  ];
+
+  // Preselect California (id: 5) by default
+  const [selected, setSelected] = useState([options[4]]);
+
+  return (
+    <div className="p-4 max-w-md mx-auto">
+      <h2 className="text-xl font-bold mb-4">React Bootstrap Typeahead Demo</h2>
+      
+      <div className="mb-6">
+        <p className="mb-2">This typeahead has "California" preselected by default:</p>
+        <Typeahead
+          id="preselected-typeahead"
+          labelKey="name"
+          onChange={setSelected}
+          options={options}
+          placeholder="Choose a state..."
+          selected={selected}
+          minLength={0}
+        />
+      </div>
+      
+      <div className="mb-4">
+        <p className="font-semibold">Current selection:</p>
+        <pre className="bg-gray-100 p-2 rounded mt-1">
+          {JSON.stringify(selected, null, 2)}
+        </pre>
+      </div>
+      
+      <div className="mt-4">
+        <button 
+          className="bg-blue-500 text-white px-3 py-2 rounded mr-2"
+          onClick={() => setSelected([options[0]])}
+        >
+          Select Alabama
+        </button>
+        <button 
+          className="bg-gray-500 text-white px-3 py-2 rounded"
+          onClick={() => setSelected([])}
+        >
+          Clear Selection
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default TypeaheadWithDefaultSelection;
