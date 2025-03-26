@@ -1,8 +1,58 @@
 import { render, screen } from "@testing-library/react";
-import App from "./App";
+import { BrowserRouter } from "react-router-dom";
+import Navbar from "./Navbar";
+import { useLocation, useNavigate } from "react-router-dom";
 
-test("renders Navbar component", () => {
-  render(<App />);
-  const navbarElement = screen.getByRole("navigation"); // Assuming Navbar has a role="navigation"
-  expect(navbarElement).toBeInTheDocument();
+// Mock useLocation and useNavigate
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useLocation: jest.fn(),
+  useNavigate: jest.fn(),
+}));
+
+describe("Navbar Component", () => {
+  let mockNavigate;
+
+  beforeEach(() => {
+    mockNavigate = jest.fn();
+    useNavigate.mockReturnValue(mockNavigate);
+  });
+
+  test("renders Navbar component", () => {
+    useLocation.mockReturnValue({ pathname: "/" });
+
+    render(
+      <BrowserRouter>
+        <Navbar />
+      </BrowserRouter>
+    );
+
+    expect(screen.getByText(/Navbar/i)).toBeInTheDocument(); // Modify as per the actual content
+  });
+
+  test("sets correct document title based on URL", () => {
+    useLocation.mockReturnValue({ pathname: "/portal/site/enterprise/location-hierarchy/" });
+
+    render(
+      <BrowserRouter>
+        <Navbar />
+      </BrowserRouter>
+    );
+
+    expect(document.title).toBe("Hierarchy - Finance");
+  });
+
+  test("calls navigate function on location change", () => {
+    useLocation.mockReturnValue({ pathname: "/" });
+
+    render(
+      <BrowserRouter>
+        <Navbar />
+      </BrowserRouter>
+    );
+
+    // Simulate navigation
+    Navbar.changeLocation("/new-location");
+    expect(mockNavigate).toHaveBeenCalledWith("/new-location", { replace: true });
+  });
 });
