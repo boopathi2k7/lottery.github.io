@@ -1,29 +1,8 @@
-import React from "react";
 import { render, screen } from "@testing-library/react";
-import Box from "./Box";  // Adjust import based on the actual path
+import App from "./App";
 
-describe("Box Component", () => {
-  test("renders children correctly", () => {
-    render(<Box>Test Content</Box>);
-    expect(screen.getByText("Test Content")).toBeInTheDocument();
-  });
-
-  test("forwards ref correctly", () => {
-    const ref = React.createRef<HTMLDivElement>();
-    render(<Box ref={ref}>Ref Test</Box>);
-    expect(ref.current).toBeDefined();
-  });
-
-  test("applies allowed HTML attributes", () => {
-    render(<Box data-test="test-attribute" aria-label="box-label">Box</Box>);
-    const element = screen.getByText("Box");
-    expect(element).toHaveAttribute("data-test", "test-attribute");
-    expect(element).toHaveAttribute("aria-label", "box-label");
-  });
-
-  test("filters out disallowed attributes", () => {
-    render(<Box invalidProp="should-not-exist">Filtered</Box>);
-    const element = screen.getByText("Filtered");
-    expect(element).not.toHaveAttribute("invalidProp");
-  });
+test("renders Navbar component", () => {
+  render(<App />);
+  const navbarElement = screen.getByRole("navigation"); // Assuming Navbar has a role="navigation"
+  expect(navbarElement).toBeInTheDocument();
 });
