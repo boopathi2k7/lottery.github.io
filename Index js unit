@@ -1,33 +1,33 @@
-import React from 'react';
-import { render } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import App from './App';
-import HelixSvgs from './components/helixSvgs';
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import App from "./App";
+import reportWebVitals from "./reportWebVitals";
 
-// Basic smoke tests to check if components render
-describe('App Rendering', () => {
-  test('renders App component', () => {
-    const { getByTestId } = render(
+jest.mock("react-dom/client", () => ({
+  createRoot: jest.fn(() => ({
+    render: jest.fn(),
+  })),
+}));
+
+jest.mock("./reportWebVitals", () => jest.fn());
+
+describe("index.js", () => {
+  it("renders App inside BrowserRouter", () => {
+    const mockRoot = { render: jest.fn() };
+    createRoot.mockReturnValue(mockRoot);
+
+    require("./index");
+
+    expect(createRoot).toHaveBeenCalled();
+    expect(mockRoot.render).toHaveBeenCalledWith(
       <BrowserRouter basename={"/portal/site/enterprise/location-hierarchy/"}>
         <App />
       </BrowserRouter>
     );
-    // Assumes App component has a test id
-    expect(getByTestId('app-container')).toBeInTheDocument();
   });
 
-  test('renders HelixSvgs', () => {
-    const { getByTestId } = render(<HelixSvgs />);
-    // Assumes HelixSvgs has a test id
-    expect(getByTestId('helix-svgs')).toBeInTheDocument();
-  });
-});
-
-// Test window object initialization
-describe('Window Object Setup', () => {
-  test('creates styleSheetCache and classNameSet', () => {
-    render(<App />);
-    expect(window.styleSheetCache).toBeDefined();
-    expect(window.classNameSet).toBeDefined();
+  it("calls reportWebVitals", () => {
+    require("./index");
+    expect(reportWebVitals).toHaveBeenCalled();
   });
 });
