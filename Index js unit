@@ -1,0 +1,33 @@
+import React from 'react';
+import { render } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App';
+import HelixSvgs from './components/helixSvgs';
+
+// Basic smoke tests to check if components render
+describe('App Rendering', () => {
+  test('renders App component', () => {
+    const { getByTestId } = render(
+      <BrowserRouter basename={"/portal/site/enterprise/location-hierarchy/"}>
+        <App />
+      </BrowserRouter>
+    );
+    // Assumes App component has a test id
+    expect(getByTestId('app-container')).toBeInTheDocument();
+  });
+
+  test('renders HelixSvgs', () => {
+    const { getByTestId } = render(<HelixSvgs />);
+    // Assumes HelixSvgs has a test id
+    expect(getByTestId('helix-svgs')).toBeInTheDocument();
+  });
+});
+
+// Test window object initialization
+describe('Window Object Setup', () => {
+  test('creates styleSheetCache and classNameSet', () => {
+    render(<App />);
+    expect(window.styleSheetCache).toBeDefined();
+    expect(window.classNameSet).toBeDefined();
+  });
+});
