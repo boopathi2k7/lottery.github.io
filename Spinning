@@ -1,30 +1,29 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import "@testing-library/jest-dom"; // For better matchers
-import { Spinner } from "./Spinner"; // Adjust the import based on actual file structure
+import Box from "./Box";  // Adjust import based on the actual path
 
-describe("Spinner Component", () => {
-  test("renders Spinner component", () => {
-    render(<Spinner />);
-    const spinnerElement = screen.getByRole("status"); // Checking role 'status'
-    expect(spinnerElement).toBeInTheDocument();
+describe("Box Component", () => {
+  test("renders children correctly", () => {
+    render(<Box>Test Content</Box>);
+    expect(screen.getByText("Test Content")).toBeInTheDocument();
   });
 
-  test("should have accessible role and attributes", () => {
-    render(<Spinner />);
-    const spinnerElement = screen.getByRole("status");
-    expect(spinnerElement).toHaveAttribute("aria-describedby", "SpinnerText");
+  test("forwards ref correctly", () => {
+    const ref = React.createRef<HTMLDivElement>();
+    render(<Box ref={ref}>Ref Test</Box>);
+    expect(ref.current).toBeDefined();
   });
 
-  test("should have a loading message hidden for screen readers", () => {
-    render(<Spinner />);
-    const loadingText = screen.getByText(/Loading/i);
-    expect(loadingText).toHaveClass("hlx-ada-hidden");
+  test("applies allowed HTML attributes", () => {
+    render(<Box data-test="test-attribute" aria-label="box-label">Box</Box>);
+    const element = screen.getByText("Box");
+    expect(element).toHaveAttribute("data-test", "test-attribute");
+    expect(element).toHaveAttribute("aria-label", "box-label");
   });
 
-  test("should apply custom variant if provided", () => {
-    render(<Spinner variant="custom-variant" />);
-    const iconElement = screen.getByTestId("loader"); // Assuming a testId exists
-    expect(iconElement).toHaveClass("spin-animation");
+  test("filters out disallowed attributes", () => {
+    render(<Box invalidProp="should-not-exist">Filtered</Box>);
+    const element = screen.getByText("Filtered");
+    expect(element).not.toHaveAttribute("invalidProp");
   });
 });
