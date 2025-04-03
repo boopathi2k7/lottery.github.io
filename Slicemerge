@@ -1,0 +1,211 @@
+[02/04, 9:24 pm] Boopathi N: const initialState = {
+  name: "John",
+  age: 30,
+};
+
+const reducer = (state = initialState, action) => {
+  switch (action.type) {
+    case "UPDATE_USER":
+      // Check if the update actually changes the state
+      if (JSON.stringify(state) === JSON.stringify({ ...state, ...action.payload })) {
+        return state; // No change, return the same state
+      }
+
+      return {
+        ...state,
+        ...action.payload, // Merge only if there’s a change
+      };
+
+    default:
+      return state;
+  }
+};
+
+// **Example Actions**
+const updateUserActionNoChange = {
+  type: "UPDATE_USER",
+  payload: { age: 30 }, // No actual change, so state remains the same
+};
+
+const updateUserActionChange = {
+  type: "UPDATE_USER",
+  payload: { age: 31 }, // Change detected, state updates
+};
+[02/04, 9:25 pm] Boopathi N: const initialState = {
+  user: {
+    name: "John",
+    age: 30,
+  },
+  settings: {
+    theme: "light",
+  },
+};
+
+const reducer = (state = initialState, action) => {
+  switch (action.type) {
+    case "UPDATE_USER":
+      // Check if there is an actual update
+      if (JSON.stringify(state.user) === JSON.stringify({ ...state.user, ...action.payload })) {
+        return state; // No change, return the same state
+      }
+
+      return {
+        ...state,
+        user: {
+          ...state.user,
+          ...action.payload,
+        },
+      };
+
+    case "UPDATE_SETTINGS":
+      if (JSON.stringify(state.settings) === JSON.stringify({ ...state.settings, ...action.payload })) {
+        return state; // No change, return the same state
+      }
+
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          ...action.payload,
+        },
+      };
+
+    default:
+      return state;
+  }
+};
+
+// **Example Actions**
+const updateUserAction = {
+  type: "UPDATE_USER",
+  payload: { age: 30 }, // No actual change, so state remains the same
+};
+
+const updateSettingsAction = {
+  type: "UPDATE_SETTINGS",
+  payload: { theme: "dark" }, // Change detected, state updates
+};
+[02/04, 9:30 pm] Boopathi N: const initialState = {
+  name: "John",
+  age: 30,
+};
+
+const handlers = {
+  UPDATE_USER: (state, action) => {
+    // Check if there's an actual change
+    if (JSON.stringify(state) === JSON.stringify({ ...state, ...action.payload })) {
+      return state; // No change, return the same state
+    }
+    return { ...state, ...action.payload };
+  },
+};
+
+const reducer = (state = initialState, action) => {
+  return handlers[action.type] ? handlers[action.type](state, action) : state;
+};
+
+// **Example Actions**
+const updateUserActionNoChange = { type: "UPDATE_USER", payload: { age: 30 } }; // No change
+const updateUserActionChange = { type: "UPDATE_USER", payload: { age: 31 } }; // Change detected
+[02/04, 9:42 pm] Boopathi N: const initialState = {
+  user: {
+    name: "John",
+    age: 30,
+  },
+  settings: {
+    theme: "light",
+  },
+};
+
+const handlers = {
+  UPDATE_USER: (state, action) => {
+    const updatedUser = { ...state.user, ...action.payload };
+    return JSON.stringify(state.user) === JSON.stringify(updatedUser)
+      ? state
+      : { ...state, user: updatedUser };
+  },
+
+  UPDATE_SETTINGS: (state, action) => {
+    const updatedSettings = { ...state.settings, ...action.payload };
+    return JSON.stringify(state.settings) === JSON.stringify(updatedSettings)
+      ? state
+      : { ...state, settings: updatedSettings };
+  },
+};
+
+const reducer = (state = initialState, action) =>
+  handlers[action.type] ? handlers[action.type](state, action) : state;
+
+// **Example Actions**
+const updateUserAction = {
+  type: "UPDATE_USER",
+  payload: { age: 30 }, // No actual change, so state remains the same
+};
+
+const updateSettingsAction = {
+  type: "UPDATE_SETTINGS",
+  payload: { theme: "dark" }, // Change detected, state updates
+};
+[02/04, 9:57 pm] Boopathi N: const initialState = {
+  user: {
+    name: "John",
+    age: 30,
+  },
+  settings: {
+    theme: "light",
+  },
+};
+
+// Helper function to check if there's an actual change in the state
+const hasChanged = (oldObject, newObject) => {
+  return JSON.stringify(oldObject) !== JSON.stringify(newObject);
+};
+
+// Action handlers object
+const actionHandlers = {
+  UPDATE_USER: (state, action) => {
+    const updatedUser = { ...state.user, ...action.payload };
+    
+    if (!hasChanged(state.user, updatedUser)) {
+      return state; // No change, return the same state
+    }
+    
+    return {
+      ...state,
+      user: updatedUser,
+    };
+  },
+  
+  UPDATE_SETTINGS: (state, action) => {
+    const updatedSettings = { ...state.settings, ...action.payload };
+    
+    if (!hasChanged(state.settings, updatedSettings)) {
+      return state; // No change, return the same state
+    }
+    
+    return {
+      ...state,
+      settings: updatedSettings,
+    };
+  }
+};
+
+// Reducer using object lookup instead of switch
+const reducer = (state = initialState, action) => {
+  // Check if we have a handler for this action type
+  const handler = actionHandlers[action.type];
+  
+  // If we have a handler, use it; otherwise return the current state
+  return handler ? handler(state, action) : state;
+};
+
+// Example Actions
+const updateUserAction = {
+  type: "UPDATE_USER",
+  payload: { age: 30 }, // No actual change, so state remains the same
+};
+
+const updateSettingsAction = {
+  type: "UPDATE_SETTINGS",
+  payload: { theme: "dark" }, // Change detected, state updates
+};
