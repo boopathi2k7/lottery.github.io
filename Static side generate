@@ -1,0 +1,202 @@
+// pages/posts/[id].js
+// This is a dynamic route that will be statically generated
+// for each post at build time
+
+import React from 'react';
+import Head from 'next/head';
+import Link from 'next/link';
+
+// Mock data for example purposes
+// In a real app, this would come from a database or API
+const posts = [
+  { id: '1', title: 'First Post', content: 'Welcome to my blog!', author: 'John Doe', date: '2025-04-15' },
+  { id: '2', title: 'Second Post', content: 'Exploring Next.js SSG', author: 'Jane Smith', date: '2025-04-18' },
+  { id: '3', title: 'Third Post', content: 'Static sites are fast!', author: 'Bob Johnson', date: '2025-04-20' },
+];
+
+// Component for displaying individual posts
+export default function Post({ post }) {
+  if (!post) {
+    return <div>Post not found</div>;
+  }
+
+  return (
+    <div className="container">
+      <Head>
+        <title>{post.title} | My Blog</title>
+        <meta name="description" content={`Blog post: ${post.title}`} />
+      </Head>
+
+      <main>
+        <div className="post-header">
+          <h1>{post.title}</h1>
+          <div className="meta">
+            <span>By {post.author}</span>
+            <span> • </span>
+            <span>{new Date(post.date).toLocaleDateString()}</span>
+          </div>
+        </div>
+        
+        <article className="post-content">
+          {post.content}
+        </article>
+
+        <div className="navigation">
+          <Link href="/">← Back to Home</Link>
+        </div>
+      </main>
+
+      <style jsx>{`
+        .container {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        .post-header {
+          margin-bottom: 30px;
+        }
+        h1 {
+          font-size: 2.5rem;
+          margin-bottom: 10px;
+        }
+        .meta {
+          color: #666;
+          font-size: 0.9rem;
+        }
+        .post-content {
+          line-height: 1.6;
+          font-size: 1.1rem;
+          margin-bottom: 30px;
+        }
+        .navigation a {
+          color: #0070f3;
+          text-decoration: none;
+        }
+        .navigation a:hover {
+          text-decoration: underline;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// This function gets called at build time to determine which paths to generate
+export async function getStaticPaths() {
+  // Get the paths we want to pre-render based on posts
+  const paths = posts.map((post) => ({
+    params: { id: post.id },
+  }));
+
+  // We'll pre-render only these paths at build time.
+  // fallback: false means other routes should 404.
+  return { paths, fallback: false };
+}
+
+// This function gets called at build time to generate static props
+export async function getStaticProps({ params }) {
+  // Find the post that matches the id parameter
+  const post = posts.find((post) => post.id === params.id);
+
+  // Return the post data as props
+  return {
+    props: {
+      post: post || null,
+    },
+  };
+}
+
+// pages/index.js
+import React from 'react';
+import Head from 'next/head';
+import Link from 'next/link';
+
+// Home page component
+export default function Home({ posts }) {
+  return (
+    <div className="container">
+      <Head>
+        <title>My Blog | Homepage</title>
+        <meta name="description" content="Welcome to my blog" />
+      </Head>
+
+      <main>
+        <h1>Welcome to My Blog</h1>
+        <p>This is a simple example of static site generation with Next.js</p>
+
+        <div className="posts-list">
+          <h2>Recent Posts</h2>
+          <ul>
+            {posts.map((post) => (
+              <li key={post.id}>
+                <Link href={`/posts/${post.id}`}>
+                  <div className="post-item">
+                    <h3>{post.title}</h3>
+                    <div className="meta">
+                      <span>{post.author}</span>
+                      <span> • </span>
+                      <span>{new Date(post.date).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </main>
+
+      <style jsx>{`
+        .container {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        h1 {
+          font-size: 2.5rem;
+          margin-bottom: 10px;
+        }
+        .posts-list {
+          margin-top: 40px;
+        }
+        ul {
+          list-style: none;
+          padding: 0;
+        }
+        li {
+          margin-bottom: 20px;
+        }
+        .post-item {
+          border: 1px solid #eaeaea;
+          padding: 20px;
+          border-radius: 8px;
+          transition: box-shadow 0.2s;
+          cursor: pointer;
+        }
+        .post-item:hover {
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h3 {
+          margin: 0 0 10px 0;
+          color: #0070f3;
+        }
+        .meta {
+          color: #666;
+          font-size: 0.9rem;
+        }
+        a {
+          text-decoration: none;
+          color: inherit;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// This function gets called at build time
+export async function getStaticProps() {
+  // In a real app, you would fetch data from an API or database here
+  return {
+    props: {
+      posts,
+    },
+  };
+}
