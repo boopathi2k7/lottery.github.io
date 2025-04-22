@@ -1,8 +1,46 @@
-// App.js (single-file example) import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-export default function App() { const [msg, setMsg] = useState('');
+function MyComponent() {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-return ( <div> <Child onSend={(m) => setMsg(m)} /> <p>Message: {msg}</p> </div> ); }
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('your-api-endpoint');
+        if (!response.ok) {
+          const message = `An error has occurred: ${response.status}`;
+          throw new Error(message);
+        }
+        let actualData = await response.json();
+        setData(actualData);
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+        setData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-function Child({ onSend }) { const [input, setInput] = useState(''); return ( <> <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type..." /> <button onClick={() => onSend(input)}> Send </button> </> ); }
+    fetchData();
+  }, []);
 
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  if (error) {
+    return <p>Error: {error}</p>;
+  }
+
+  return (
+    <div>
+      {/* Display your data here */}
+      <pre>{JSON.stringify(data, null, 2)}</pre>
+    </div>
+  );
+}
+
+export default MyComponent;
