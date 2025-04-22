@@ -1,0 +1,8 @@
+// App.js (single-file example) import React, { useState } from 'react';
+
+export default function App() { const [msg, setMsg] = useState('');
+
+return ( <div> <Child onSend={(m) => setMsg(m)} /> <p>Message: {msg}</p> </div> ); }
+
+function Child({ onSend }) { const [input, setInput] = useState(''); return ( <> <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type..." /> <button onClick={() => onSend(input)}> Send </button> </> ); }
+
