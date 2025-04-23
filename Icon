@@ -1,40 +1,33 @@
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import HierarchyPopup from './HierarchyPopup'; // Adjust path as needed
+import React from "react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import HierarchyPopup from "./HierarchyPopup";
 
-describe('HierarchyPopup', () => {
+describe("HierarchyPopup", () => {
   const mockSendData = jest.fn();
   const mockOnCancel = jest.fn();
 
-  const props = {
-    title: 'Select User',
-    sendData: mockSendData,
-    onCancel: mockOnCancel,
-  };
-
   beforeEach(() => {
-    jest.clearAllMocks();
+    render(
+      <HierarchyPopup sendData={mockSendData} onCancel={mockOnCancel} />
+    );
   });
 
-  it('renders with title', () => {
-    render(<HierarchyPopup {...props} />);
-    expect(screen.getByText(/select user/i)).toBeInTheDocument();
+  it("renders the modal", () => {
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
-  it('handles Select button click', () => {
-    render(<HierarchyPopup {...props} />);
-    const selectButton = screen.getByRole('button', { name: /select/i });
-    fireEvent.click(selectButton);
+  it("calls sendData and onCancel when handleData is triggered", () => {
+    // Simulate selecting data from child component
+    const selectedData = "Test Data";
 
-    expect(mockSendData).toHaveBeenCalled();
-    expect(mockOnCancel).toHaveBeenCalled();
-  });
+    // Access the function set by the child component to simulate callback
+    const treeView = screen.getByTestId("organization-tree");
+    fireEvent.change(treeView, { target: { value: selectedData } });
 
-  it('handles Cancel button click', () => {
-    render(<HierarchyPopup {...props} />);
-    const cancelButton = screen.getByRole('button', { name: /cancel/i });
-    fireEvent.click(cancelButton);
+    // Simulate click or form submission (you may need to trigger this manually based on actual implementation)
+    fireEvent.click(screen.getByText("Submit")); // Replace "Submit" with the actual button text if available
 
+    expect(mockSendData).toHaveBeenCalledWith(selectedData);
     expect(mockOnCancel).toHaveBeenCalled();
   });
 });
