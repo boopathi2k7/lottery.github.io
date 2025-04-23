@@ -1,15 +1,43 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import Loader from './Loader';
+import { render, screen, fireEvent } from '@testing-library/react';
+import HierarchyPopup from './HierarchyPopup';
 
-describe('Loader component', () => {
-  test('renders loader spinner and text', () => {
-    render(<Loader />);
+describe('HierarchyPopup Component', () => {
+  const mockSendData = jest.fn();
+  const mockOnCancel = jest.fn();
+  
+  const defaultProps = {
+    title: 'Select User',
+    sendData: mockSendData,
+    onCancel: mockOnCancel,
+  };
+
+  beforeEach(() => {
+    mockSendData.mockClear();
+    mockOnCancel.mockClear();
+  });
+
+  test('renders modal with title', () => {
+    render(<HierarchyPopup {...defaultProps} />);
+    expect(screen.getByText('Select User')).toBeInTheDocument();
+  });
+
+  test('calls sendData and onCancel when "Select" button is clicked', () => {
+    render(<HierarchyPopup {...defaultProps} />);
     
-    const spinner = screen.getByRole('status');
-    const loadingText = screen.getByText(/loading/i);
+    const selectButton = screen.getByText('Select');
+    fireEvent.click(selectButton);
 
-    expect(spinner).toBeInTheDocument();
-    expect(loadingText).toBeInTheDocument();
+    expect(mockSendData).toHaveBeenCalled();
+    expect(mockOnCancel).toHaveBeenCalled();
+  });
+
+  test('calls onCancel when "Cancel" button is clicked', () => {
+    render(<HierarchyPopup {...defaultProps} />);
+    
+    const cancelButton = screen.getByText('Cancel');
+    fireEvent.click(cancelButton);
+
+    expect(mockOnCancel).toHaveBeenCalled();
   });
 });
