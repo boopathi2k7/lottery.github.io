@@ -1,41 +1,38 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import HierarchyPopup from './HierarchyPopup';
+import HierarchyPopup from './HierarchyPopup'; // Adjust path as needed
 
-describe('HierarchyPopup Component', () => {
+describe('HierarchyPopup', () => {
   const mockSendData = jest.fn();
   const mockOnCancel = jest.fn();
-  
-  const defaultProps = {
+
+  const props = {
     title: 'Select User',
     sendData: mockSendData,
     onCancel: mockOnCancel,
   };
 
   beforeEach(() => {
-    mockSendData.mockClear();
-    mockOnCancel.mockClear();
+    jest.clearAllMocks();
   });
 
-  test('renders modal with title', () => {
-    render(<HierarchyPopup {...defaultProps} />);
-    expect(screen.getByText('Select User')).toBeInTheDocument();
+  it('renders with title', () => {
+    render(<HierarchyPopup {...props} />);
+    expect(screen.getByText(/select user/i)).toBeInTheDocument();
   });
 
-  test('calls sendData and onCancel when "Select" button is clicked', () => {
-    render(<HierarchyPopup {...defaultProps} />);
-    
-    const selectButton = screen.getByText('Select');
+  it('handles Select button click', () => {
+    render(<HierarchyPopup {...props} />);
+    const selectButton = screen.getByRole('button', { name: /select/i });
     fireEvent.click(selectButton);
 
     expect(mockSendData).toHaveBeenCalled();
     expect(mockOnCancel).toHaveBeenCalled();
   });
 
-  test('calls onCancel when "Cancel" button is clicked', () => {
-    render(<HierarchyPopup {...defaultProps} />);
-    
-    const cancelButton = screen.getByText('Cancel');
+  it('handles Cancel button click', () => {
+    render(<HierarchyPopup {...props} />);
+    const cancelButton = screen.getByRole('button', { name: /cancel/i });
     fireEvent.click(cancelButton);
 
     expect(mockOnCancel).toHaveBeenCalled();
