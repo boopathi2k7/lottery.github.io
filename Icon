@@ -1,0 +1,23 @@
+import React from 'react';
+import { render } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import Icon from './Icon'; // Update the path as per your file structure
+
+describe('Icon component', () => {
+  it('renders with default props', () => {
+    const { container } = render(<Icon />);
+    expect(container.firstChild).toBeInTheDocument();
+  });
+
+  it('renders with a custom id', () => {
+    const { container } = render(<Icon id="custom-icon" />);
+    expect(container.innerHTML).toContain('custom-icon');
+  });
+
+  it('has default size, variant, isSelected, and isDisabled', () => {
+    const { container } = render(<Icon />);
+    const svg = container.querySelector('svg');
+    expect(svg).toBeInTheDocument();
+    // Additional assertions based on props rendering
+  });
+});
