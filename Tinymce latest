@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TinyMCE with jQuery</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .editor-container {
+            margin-bottom: 20px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007cba;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background: #005a87;
+        }
+        .output {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            min-height: 100px;
+        }
+        .output h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        #content-display {
+            border: 1px solid #ccc;
+            padding: 10px;
+            min-height: 80px;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>TinyMCE with jQuery Integration</h1>
+        
+        <div class="editor-container">
+            <textarea id="mytextarea" name="content">
+                <h2>Welcome to TinyMCE!</h2>
+                <p>This is a <strong>sample content</strong> with some <em>formatting</em>.</p>
+                <ul>
+                    <li>Feature 1</li>
+                    <li>Feature 2</li>
+                    <li>Feature 3</li>
+                </ul>
+            </textarea>
+        </div>
+
+        <div class="button-group">
+            <button id="get-content">Get Content</button>
+            <button id="set-content">Set Sample Content</button>
+            <button id="clear-content">Clear Content</button>
+            <button id="insert-content">Insert Text</button>
+            <button id="toggle-readonly">Toggle Read-only</button>
+            <button id="focus-editor">Focus Editor</button>
+        </div>
+
+        <div class="output">
+            <h3>Editor Content Output:</h3>
+            <div id="content-display"></div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize TinyMCE
+            tinymce.init({
+                selector: '#mytextarea',
+                height: 400,
+                menubar: false,
+                plugins: [
+                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
+                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                    'insertdatetime', 'media', 'table', 'preview', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | blocks | ' +
+                    'bold italic forecolor | alignleft aligncenter ' +
+                    'alignright alignjustify | bullist numlist outdent indent | ' +
+                    'removeformat | help',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                setup: function(editor) {
+                    // Event listeners for TinyMCE
+                    editor.on('change', function() {
+                        console.log('Editor content changed');
+                    });
+                    
+                    editor.on('focus', function() {
+                        console.log('Editor focused');
+                    });
+                    
+                    editor.on('blur', function() {
+                        console.log('Editor blurred');
+                    });
+                }
+            });
+
+            // jQuery event handlers for buttons
+            $('#get-content').click(function() {
+                var content = tinymce.get('mytextarea').getContent();
+                $('#content-display').html(content);
+            });
+
+            $('#set-content').click(function() {
+                var sampleContent = '<h3>New Sample Content</h3><p>This content was set using jQuery and TinyMCE API.</p><blockquote>This is a quote block.</blockquote>';
+                tinymce.get('mytextarea').setContent(sampleContent);
+            });
+
+            $('#clear-content').click(function() {
+                tinymce.get('mytextarea').setContent('');
+            });
+
+            $('#insert-content').click(function() {
+                var textToInsert = '<p><strong>Inserted text:</strong> This was inserted at cursor position on ' + new Date().toLocaleString() + '</p>';
+                tinymce.get('mytextarea').insertContent(textToInsert);
+            });
+
+            $('#toggle-readonly').click(function() {
+                var editor = tinymce.get('mytextarea');
+                var isReadonly = editor.getParam('readonly');
+                editor.setParam('readonly', !isReadonly);
+                editor.getBody().setAttribute('contenteditable', isReadonly);
+                $(this).text(isReadonly ? 'Set Read-only' : 'Set Editable');
+            });
+
+            $('#focus-editor').click(function() {
+                tinymce.get('mytextarea').focus();
+            });
+
+            // Additional jQuery integration examples
+            
+            // Form submission handler
+            $('form').on('submit', function(e) {
+                // Get content from TinyMCE before submitting
+                var content = tinymce.get('mytextarea').getContent();
+                console.log('Form submitted with content:', content);
+                // You can process the content here before actual submission
+            });
+
+            // Custom jQuery function to work with TinyMCE
+            $.fn.getTinyMCEContent = function() {
+                var editorId = this.attr('id');
+                return tinymce.get(editorId).getContent();
+            };
+
+            $.fn.setTinyMCEContent = function(content) {
+                var editorId = this.attr('id');
+                tinymce.get(editorId).setContent(content);
+                return this; // for chaining
+            };
+
+            // Example usage of custom jQuery functions
+            // $('#mytextarea').setTinyMCEContent('<p>Custom content via jQuery extension</p>');
+            // var content = $('#mytextarea').getTinyMCEContent();
+        });
+
+        // Global function to handle TinyMCE operations
+        window.TinyMCEHelper = {
+            getEditor: function(id) {
+                return tinymce.get(id);
+            },
+            
+            getAllContent: function() {
+                var editors = tinymce.editors;
+                var content = {};
+                for (var i = 0; i < editors.length; i++) {
+                    content[editors[i].id] = editors[i].getContent();
+                }
+                return content;
+            },
+            
+            saveContent: function(id) {
+                var content = tinymce.get(id).getContent();
+                // Here you would typically send content to server
+                console.log('Saving content:', content);
+                return content;
+            }
+        };
+    </script>
+</body>
+</html>
