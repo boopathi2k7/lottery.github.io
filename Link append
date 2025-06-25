@@ -1,0 +1,80 @@
+const insertLink = useCallback(() => {
+  if (linkUrl && linkText) {
+    if (isSourceView) {
+      // Insert link in source mode
+      const linkHtml = `<a href="${linkUrl}" class="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer">${linkText}</a>`;
+      const updatedContent = htmlContent + linkHtml;
+      setHtmlContent(updatedContent);
+      setContent(updatedContent);
+      onContentChange(updatedContent);
+    } else {
+      const editor = editorRef.current;
+      editor?.focus();
+
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+
+        // Remove any selected content
+        range.deleteContents();
+
+        // Create link element
+        const link = document.createElement("a");
+        link.href = linkUrl;
+        link.textContent = linkText;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.className = "text-blue-600 hover:text-blue-800 underline";
+
+        // Insert the link
+        range.insertNode(link);
+
+        // Move cursor after the inserted link
+        range.setStartAfter(link);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      } else {
+        // If there's no selection, append to the editor
+        const link = document.createElement("a");
+        link.href = linkUrl;
+        link.textContent = linkText;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.className = "text-blue-600 hover:text-blue-800 underline";
+        editor?.appendChild(link);
+      }
+
+      handleContentChange();
+    }
+  }
+
+  // Reset link modal
+  setIsLinkModalOpen(false);
+  setLinkUrl('');
+  setLinkText('');
+  editorRef.current?.focus();
+}, [linkUrl, linkText, isSourceView, htmlContent, handleContentChange, onContentChange]);
+
+
+const toggleSourceView = useCallback(() => {
+  if (isSourceView) {
+    // Going from source view -> visual view
+    if (editorRef.current) {
+      editorRef.current.innerHTML = htmlContent;
+      setContent(htmlContent);
+    }
+  } else {
+    // Going from visual view -> source view
+    if (editorRef.current) {
+      const currentContent = editorRef.current.innerHTML;
+      setHtmlContent(currentContent);  // update textarea
+      setContent(currentContent);      // keep state consistent
+      onContentChange(currentContent); // notify parent
+    }
+  }
+
+  setIsSourceView(!isSourceView);
+}, [isSourceView, htmlContent, onContentChange]);
+
+
