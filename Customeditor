@@ -1,0 +1,515 @@
+import React, { useRef, useState, useCallback } from 'react';
+import { Bold, Italic, Underline, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, Link, Undo, Redo, Type, Code, Eye } from 'lucide-react';
+
+const RichTextEditor = ({ 
+  initialContent = '', 
+  onContentChange = () => {},
+  loadFromApi = false,
+  apiEndpoint = '',
+  documentId = null 
+}) => {
+  const editorRef = useRef(null);
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
+  const [linkText, setLinkText] = useState('');
+  const [isSourceView, setIsSourceView] = useState(false);
+  const [htmlContent, setHtmlContent] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [content, setContent] = useState(initialContent);
+
+  // Load content dynamically
+  const loadContent = useCallback(async (source, data) => {
+    setIsLoading(true);
+    try {
+      let newContent = '';
+      
+      switch (source) {
+        case 'api':
+          if (apiEndpoint) {
+            const response = await fetch(apiEndpoint);
+            const result = await response.json();
+            newContent = result.content || result.html || '';
+          }
+          break;
+        case 'localStorage':
+          newContent = localStorage.getItem(data) || '';
+          break;
+        case 'direct':
+          newContent = data || '';
+          break;
+        case 'file':
+          if (data instanceof File) {
+            newContent = await data.text();
+          }
+          break;
+        default:
+          newContent = data || '';
+      }
+      
+      setContent(newContent);
+      if (editorRef.current) {
+        editorRef.current.innerHTML = newContent;
+      }
+    } catch (error) {
+      console.error('Error loading content:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [apiEndpoint]);
+
+  // Auto-load content on mount if specified
+  React.useEffect(() => {
+    if (loadFromApi && apiEndpoint) {
+      loadContent('api');
+    } else if (initialContent) {
+      loadContent('direct', initialContent);
+    } else {
+      // Default dynamic Hello World message
+      const helloWorldMessage = '<h1>Hello World!</h1><p>Welcome to the <strong>Rich Text Editor</strong>. This message was loaded dynamically when the component mounted.</p><p>You can now:</p><ul><li>Edit this content</li><li>Apply formatting</li><li>Add new content</li><li>Save your work</li></ul>';
+      loadContent('direct', helloWorldMessage);
+    }
+  }, [loadFromApi, apiEndpoint, initialContent, loadContent]);
+
+  // Handle content changes
+  const handleContentChange = useCallback(() => {
+    if (editorRef.current) {
+      const newContent = editorRef.current.innerHTML;
+      setContent(newContent);
+      onContentChange(newContent);
+    }
+  }, [onContentChange]);
+  const executeCommand = useCallback((command, value = null) => {
+    document.execCommand(command, false, value);
+    editorRef.current?.focus();
+    handleContentChange();
+  }, [handleContentChange]);
+
+  const handleFormat = useCallback((command, value = null) => {
+    executeCommand(command, value);
+  }, [executeCommand]);
+
+  const toggleSourceView = useCallback(() => {
+    if (isSourceView) {
+      // Switching from source to visual
+      if (editorRef.current) {
+        editorRef.current.innerHTML = htmlContent;
+      }
+    } else {
+      // Switching from visual to source
+      if (editorRef.current) {
+        setHtmlContent(editorRef.current.innerHTML);
+      }
+    }
+    setIsSourceView(!isSourceView);
+  }, [isSourceView, htmlContent]);
+
+  const handleSourceChange = useCallback((e) => {
+    setHtmlContent(e.target.value);
+  }, []);
+  const insertLink = useCallback(() => {
+    if (linkUrl && linkText) {
+      const selection = window.getSelection();
+      if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        const link = document.createElement('a');
+        link.href = linkUrl;
+        link.textContent = linkText;
+        link.className = 'text-blue-600 hover:text-blue-800 underline';
+        range.insertNode(link);
+      }
+    }
+    setIsLinkModalOpen(false);
+    setLinkUrl('');
+    setLinkText('');
+    editorRef.current?.focus();
+  }, [linkUrl, linkText]);
+
+  const formatButtons = [
+    { icon: Bold, command: 'bold', tooltip: 'Bold (Ctrl+B)' },
+    { icon: Italic, command: 'italic', tooltip: 'Italic (Ctrl+I)' },
+    { icon: Underline, command: 'underline', tooltip: 'Underline (Ctrl+U)' },
+  ];
+
+  const listButtons = [
+    { icon: List, command: 'insertUnorderedList', tooltip: 'Bullet List' },
+    { icon: ListOrdered, command: 'insertOrderedList', tooltip: 'Numbered List' },
+  ];
+
+  const alignButtons = [
+    { icon: AlignLeft, command: 'justifyLeft', tooltip: 'Align Left' },
+    { icon: AlignCenter, command: 'justifyCenter', tooltip: 'Align Center' },
+    { icon: AlignRight, command: 'justifyRight', tooltip: 'Align Right' },
+  ];
+
+  const historyButtons = [
+    { icon: Undo, command: 'undo', tooltip: 'Undo (Ctrl+Z)' },
+    { icon: Redo, command: 'redo', tooltip: 'Redo (Ctrl+Y)' },
+  ];
+
+  const ToolbarButton = ({ icon: Icon, command, tooltip, value = null }) => (
+    <button
+      type="button"
+      onClick={() => handleFormat(command, value)}
+      className="p-2 rounded hover:bg-gray-100 transition-colors duration-200 group relative"
+      title={tooltip}
+    >
+      <Icon size={16} className="text-gray-700" />
+      <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
+        {tooltip}
+      </span>
+    </button>
+  );
+
+  const Separator = () => <div className="w-px h-6 bg-gray-300 mx-1" />;
+
+  return (
+    <div className="max-w-4xl mx-auto p-6 bg-white">
+      <div className="border border-gray-300 rounded-lg shadow-sm overflow-hidden">
+        {/* Toolbar */}
+        <div className="bg-gray-50 border-b border-gray-300 p-3">
+          {isLoading && (
+            <div className="mb-3 text-center">
+              <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                Loading content...
+              </div>
+            </div>
+          )}
+          
+          <div className="flex items-center gap-1 flex-wrap">
+            {/* Quick Load Buttons */}
+            <div className="flex items-center gap-2 mr-4">
+              <button
+                onClick={() => loadContent('localStorage', 'editor-content')}
+                className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+                title="Load from localStorage"
+              >
+                Load Saved
+              </button>
+              <button
+                onClick={() => {
+                  localStorage.setItem('editor-content', content);
+                  alert('Content saved to localStorage!');
+                }}
+                className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                title="Save to localStorage"
+              >
+                Save
+              </button>
+              <input
+                type="file"
+                accept=".html,.txt"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) loadContent('file', file);
+                }}
+                className="hidden"
+                id="file-input"
+              />
+              <label
+                htmlFor="file-input"
+                className="px-3 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors cursor-pointer"
+                title="Load from file"
+              >
+                Load File
+              </label>
+            </div>
+
+            <Separator />
+            {/* Text Formatting */}
+            <select
+              onChange={(e) => handleFormat('formatBlock', e.target.value)}
+              className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              defaultValue=""
+            >
+              <option value="">Format</option>
+              <option value="h1">Heading 1</option>
+              <option value="h2">Heading 2</option>
+              <option value="h3">Heading 3</option>
+              <option value="p">Paragraph</option>
+            </select>
+
+            <select
+              onChange={(e) => handleFormat('fontSize', e.target.value)}
+              className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ml-2"
+              defaultValue="3"
+            >
+              <option value="1">8pt</option>
+              <option value="2">10pt</option>
+              <option value="3">12pt</option>
+              <option value="4">14pt</option>
+              <option value="5">18pt</option>
+              <option value="6">24pt</option>
+              <option value="7">36pt</option>
+            </select>
+
+            <Separator />
+
+            {/* Format Buttons */}
+            {formatButtons.map((button, index) => (
+              <ToolbarButton key={index} {...button} />
+            ))}
+
+            <Separator />
+
+            {/* Text Color */}
+            <div className="relative group">
+              <button
+                type="button"
+                className="p-2 rounded hover:bg-gray-100 transition-colors duration-200 relative"
+                title="Text Color"
+              >
+                <Type size={16} className="text-gray-700" />
+                <input
+                  type="color"
+                  onChange={(e) => handleFormat('foreColor', e.target.value)}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+              </button>
+            </div>
+
+            <Separator />
+
+            {/* Lists */}
+            {listButtons.map((button, index) => (
+              <ToolbarButton key={index} {...button} />
+            ))}
+
+            <Separator />
+
+            {/* Alignment */}
+            {alignButtons.map((button, index) => (
+              <ToolbarButton key={index} {...button} />
+            ))}
+
+            <Separator />
+
+            {/* Link */}
+            <button
+              type="button"
+              onClick={() => setIsLinkModalOpen(true)}
+              className="p-2 rounded hover:bg-gray-100 transition-colors duration-200 group relative"
+              title="Insert Link"
+            >
+              <Link size={16} className="text-gray-700" />
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
+                Insert Link
+              </span>
+            </button>
+
+            <Separator />
+
+            {/* History */}
+            {historyButtons.map((button, index) => (
+              <ToolbarButton key={index} {...button} />
+            ))}
+
+            <Separator />
+
+            {/* Source View Toggle */}
+            <button
+              type="button"
+              onClick={toggleSourceView}
+              className={`p-2 rounded transition-colors duration-200 group relative ${
+                isSourceView 
+                  ? 'bg-blue-100 text-blue-700' 
+                  : 'hover:bg-gray-100 text-gray-700'
+              }`}
+              title={isSourceView ? 'Switch to Visual Editor' : 'View HTML Source'}
+            >
+              {isSourceView ? <Eye size={16} /> : <Code size={16} />}
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
+                {isSourceView ? 'Visual Editor' : 'HTML Source'}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* Editor or Source View */}
+        {isSourceView ? (
+          <textarea
+            value={htmlContent}
+            onChange={handleSourceChange}
+            className="w-full min-h-96 p-6 font-mono text-sm border-none resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+            placeholder="Enter HTML source code here..."
+          />
+        ) : (
+          <div
+            ref={editorRef}
+            contentEditable
+            className="min-h-96 p-6 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+            style={{
+              lineHeight: '1.6',
+              fontSize: '14px',
+            }}
+            suppressContentEditableWarning={true}
+            onInput={handleContentChange}
+            onKeyDown={(e) => {
+              // Handle keyboard shortcuts
+              if (e.ctrlKey || e.metaKey) {
+                switch (e.key) {
+                  case 'b':
+                    e.preventDefault();
+                    handleFormat('bold');
+                    break;
+                  case 'i':
+                    e.preventDefault();
+                    handleFormat('italic');
+                    break;
+                  case 'u':
+                    e.preventDefault();
+                    handleFormat('underline');
+                    break;
+                  case 'z':
+                    e.preventDefault();
+                    handleFormat('undo');
+                    break;
+                  case 'y':
+                    e.preventDefault();
+                    handleFormat('redo');
+                    break;
+                  case 's':
+                    e.preventDefault();
+                    localStorage.setItem('editor-content', content);
+                    alert('Content saved!');
+                    break;
+                  default:
+                    break;
+                }
+              }
+            }}
+          >
+            {/* Content is now loaded dynamically - no static content needed */}
+          </div>
+        )}
+      </div>
+
+      {/* Link Modal */}
+      {isLinkModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
+            <h3 className="text-lg font-semibold mb-4">Insert Link</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Link Text
+                </label>
+                <input
+                  type="text"
+                  value={linkText}
+                  onChange={(e) => setLinkText(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter link text"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  URL
+                </label>
+                <input
+                  type="url"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://example.com"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setIsLinkModalOpen(false);
+                  setLinkUrl('');
+                  setLinkText('');
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={insertLink}
+                disabled={!linkUrl || !linkText}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
+              >
+                Insert Link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Instructions */}
+      <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+        <h4 className="font-semibold text-blue-900 mb-2">How to load dynamic content:</h4>
+        <div className="text-sm text-blue-800 space-y-2">
+          <div>
+            <strong>1. Component Props:</strong>
+            <code className="block bg-white p-2 mt-1 rounded text-xs">
+{`<RichTextEditor 
+  initialContent="<p>Initial HTML content</p>"
+  onContentChange={(content) => console.log(content)}
+  loadFromApi={true}
+  apiEndpoint="/api/content"
+/>`}
+            </code>
+          </div>
+          
+          <div>
+            <strong>2. Programmatic Loading:</strong>
+            <code className="block bg-white p-2 mt-1 rounded text-xs">
+{`// From API
+loadContent('api', '/api/document/123');
+
+// From localStorage
+loadContent('localStorage', 'my-document');
+
+// Direct HTML
+loadContent('direct', '<p>Hello World</p>');
+
+// From file
+loadContent('file', fileObject);`}
+            </code>
+          </div>
+
+          <div>
+            <strong>3. Quick Actions:</strong>
+            <p>• Use "Load Saved" to restore from localStorage</p>
+            <p>• Use "Save" to store current content</p>
+            <p>• Use "Load File" to import HTML/text files</p>
+            <p>• Press Ctrl+S to quick save</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Demo Content Loader */}
+      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+        <h4 className="font-semibold text-gray-900 mb-2">Demo Content Loader:</h4>
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => loadContent('direct', '<h1>Hello World!</h1><p>This is a simple <strong>Hello World</strong> message loaded dynamically!</p>')}
+            className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm"
+          >
+            Load Hello World
+          </button>
+          
+          <button
+            onClick={() => loadContent('direct', '<h1>Welcome to the Editor</h1><p>This is <strong>sample content</strong> loaded dynamically!</p>')}
+            className="px-3 py-2 bg-blue-600 text-white rounded hover:blue-700 transition-colors text-sm"
+          >
+            Load Welcome Message
+          </button>
+          
+          <button
+            onClick={() => loadContent('direct', '')}
+            className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm"
+          >
+            Clear Content
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default RichTextEditor;
