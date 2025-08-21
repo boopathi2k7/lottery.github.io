@@ -1,1 +1,13 @@
+As Santhosh mentioned, the image pruner is used to delete vulnerable images from Artifactory along with the associated pods and deployment configurations in OpenShift.
 
+On the deployment side, the process is straightforward. The dc.yaml file is provided by the DevX team and added into the respective namespaces. Once deployed, the image pruner pod runs in the dev namespace.
+
+This image exposes a Swagger API with three endpoints:
+
+1. Get Vulnerable Images – Normally, vulnerable images are identified from the CM scan report, which runs weekly, or by logging into the CM scan portal to manually fetch the list. This API eliminates that waiting time— with a single click, it instantly provides the list of vulnerable images along with issue details.
+
+
+2. Delete Vulnerable Images and Pods – This API resembles the container-provided Swagger API, which deletes images only from Artifactory. However, the image pruner goes a step further by deleting not only the vulnerable images from Artifactory but also the associated pods and deployment configurations in OpenShift. (Note: This is typically not executed directly by us.)
+
+
+3. Delete Stale Pods – Cleans up error and pending pods. Completed status pods are not deleted, since they contain build details, and the DevX team has decided to retain them.
