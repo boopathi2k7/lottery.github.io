@@ -1,0 +1,163 @@
+import React from 'react';
+import { AuthProvider, useAuth } from 'react-oidc-context';
+import { User } from 'oidc-client-ts';
+
+// OIDC Configuration - Replace XXX with your actual values
+const oidcConfig = {
+  authority: 'https://xxx-your-oidc-provider.com',
+  client_id: 'xxx-your-client-id',
+  redirect_uri: 'http://localhost:5173/callback',
+  post_logout_redirect_uri: 'http://localhost:5173',
+  response_type: 'code',
+  scope: 'openid profile email',
+  automaticSilentRenew: true,
+  loadUserInfo: true,
+};
+
+// Protected Route Component
+const ProtectedContent = () => {
+  const auth = useAuth();
+
+  if (auth.isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (auth.error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-red-50">
+        <div className="bg-white p-8 rounded-lg shadow-md max-w-md">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Authentication Error</h2>
+          <p className="text-gray-700 mb-4">{auth.error.message}</p>
+          <button
+            onClick={() => auth.signinRedirect()}
+            className="w-full bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!auth.isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+          <div className="text-center mb-6">
+            <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome</h1>
+            <p className="text-gray-600">Please sign in to continue</p>
+          </div>
+          
+          <button
+            onClick={() => auth.signinRedirect()}
+            className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition shadow-md"
+          >
+            Sign In with SSO
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // User is authenticated - show protected content
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <h1 className="text-xl font-bold text-gray-800">My App</h1>
+            <button
+              onClick={() => auth.signoutRedirect()}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">User Profile</h2>
+          
+          <div className="space-y-3">
+            <div className="flex items-center">
+              <span className="font-semibold text-gray-700 w-32">Name:</span>
+              <span className="text-gray-600">{auth.user?.profile?.name || 'N/A'}</span>
+            </div>
+            <div className="flex items-center">
+              <span className="font-semibold text-gray-700 w-32">Email:</span>
+              <span className="text-gray-600">{auth.user?.profile?.email || 'N/A'}</span>
+            </div>
+            <div className="flex items-center">
+              <span className="font-semibold text-gray-700 w-32">Subject ID:</span>
+              <span className="text-gray-600 text-sm">{auth.user?.profile?.sub || 'N/A'}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Protected Content</h2>
+          <p className="text-gray-600 mb-4">
+            This is a protected area that only authenticated users can access.
+          </p>
+          
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <p className="text-green-800 font-semibold">✓ Authentication Successful</p>
+            <p className="text-green-700 text-sm mt-1">You are now logged in via SSO</p>
+          </div>
+        </div>
+
+        {/* Debug Information */}
+        <details className="mt-6 bg-gray-100 rounded-lg p-4">
+          <summary className="font-semibold text-gray-700 cursor-pointer">
+            Debug Information (Click to expand)
+          </summary>
+          <div className="mt-4 space-y-2">
+            <div>
+              <span className="font-semibold">Access Token:</span>
+              <pre className="bg-white p-2 rounded mt-1 text-xs overflow-x-auto">
+                {auth.user?.access_token ? 
+                  auth.user.access_token.substring(0, 50) + '...' : 
+                  'Not available'
+                }
+              </pre>
+            </div>
+            <div>
+              <span className="font-semibold">Token Expires At:</span>
+              <p className="text-sm text-gray-600">
+                {auth.user?.expires_at ? 
+                  new Date(auth.user.expires_at * 1000).toLocaleString() : 
+                  'N/A'
+                }
+              </p>
+            </div>
+          </div>
+        </details>
+      </main>
+    </div>
+  );
+};
+
+// Main App Component
+const App = () => {
+  return (
+    <AuthProvider {...oidcConfig}>
+      <ProtectedContent />
+    </AuthProvider>
+  );
+};
+
+export default App;
