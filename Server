@@ -1,0 +1,33 @@
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+
+const app = express();
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*", // allow all — you can change to your domain later
+  },
+});
+
+let activeUsers = 0;
+
+io.on("connection", (socket) => {
+  activeUsers++;
+  
+  // broadcast updated count to everyone
+  io.emit("active_user_count", activeUsers);
+
+  console.log("User connected. Active:", activeUsers);
+
+  socket.on("disconnect", () => {
+    activeUsers--;
+    io.emit("active_user_count", activeUsers);
+    console.log("User disconnected. Active:", activeUsers);
+  });
+});
+
+server.listen(3000, () => {
+  console.log("Server running on http://localhost:3000");
+});
