@@ -1,0 +1,96 @@
+import { UserManager, WebStorageStateStore } from "oidc-client-ts";
+
+const config = {
+  authority: "https://your-oidc-provider.com",        // Keycloak / Auth0 / Azure / Okta / etc.
+  client_id: "YOUR_CLIENT_ID",
+  redirect_uri: "http://localhost:3000/callback",
+  post_logout_redirect_uri: "http://localhost:3000/",
+  response_type: "code",
+  scope: "openid profile email",
+  userStore: new WebStorageStateStore({ store: window.localStorage }),
+};
+
+export const userManager = new UserManager(config);
+
+__--------
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Login from "./Login";
+import Callback from "./Callback";
+import Home from "./Home";
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/callback" element={<Callback />} />
+        <Route path="/home" element={<Home />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+import { userManager } from "./oidcConfig";
+
+export default function Login() {
+  const login = () => {
+    userManager.signinRedirect();
+  };
+
+  return (
+    <div style={{ padding: 40 }}>
+      <h2>React OIDC SSO Login</h2>
+      <button onClick={login} style={{ padding: 10, fontSize: 18 }}>
+        Login with OIDC
+      </button>
+    </div>
+  );
+}
+
+
+import { useEffect } from "react";
+import { userManager } from "./oidcConfig";
+import { useNavigate } from "react-router-dom";
+
+export default function Callback() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    async function completeLogin() {
+      await userManager.signinRedirectCallback();
+      navigate("/home");
+    }
+    completeLogin();
+  }, []);
+
+  return <h3>Completing login…</h3>;
+}
+
+
+
+import { useEffect, useState } from "react";
+import { userManager } from "./oidcConfig";
+
+export default function Home() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    userManager.getUser().then((u) => setUser(u));
+  }, []);
+
+  if (!user) return <h3>Please login</h3>;
+
+  return (
+    <div style={{ padding: 40 }}>
+      <h2>Welcome {user.profile.name}</h2>
+      <p>Email: {user.profile.email}</p>
+
+      <button
+        onClick={() => userManager.signoutRedirect()}
+        style={{ marginTop: 20 }}
+      >
+        Logout
+      </button>
+    </div>
+  );
+}
