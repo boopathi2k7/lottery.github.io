@@ -1,0 +1,27 @@
+Slide 3 – Key Features
+Speech:
+“Global Entitlement Service provides several key features:
+Centralized Access Control – All user permissions are managed in one place.
+Role-Based Access Control – Users are assigned roles that define their permissions.
+Audit and Compliance – Tracks who has access to what resources.
+Integration – Easily integrates with different applications and services.”
+Slide 4 – How It Works
+Speech:
+“GES works as a central authorization service.
+When a user tries to access a system:
+The application sends a request to GES.
+GES validates the user's role and permissions.
+Based on the entitlement rules, access is granted or denied.
+This ensures that access control is consistent across all systems.”
+Slide 5 – Benefits
+Speech:
+“The key benefits of Global Entitlement Service include:
+Improved security and governance
+Reduced manual access management
+Better visibility and control over user permissions
+Scalability for large organizations with multiple applications.”
+Slide 6 – Conclusion
+Speech:
+“To conclude, Global Entitlement Service plays an important role in modern identity and access management.
+By centralizing entitlement management, organizations can improve security, efficiency, and compliance while simplifying access control across systems.
+Thank you for your time. I’m happy to take any questions.”
